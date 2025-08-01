@@ -12,9 +12,9 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(ContestRegistrations::Table)
                     .if_not_exists()
-                    .col(pk_auto(ContestRegistrations::Id))
-                    .col(integer(ContestRegistrations::UserId))
-                    .col(integer(ContestRegistrations::ContestId))
+                    .col(pk_auto(ContestRegistrations::Id).big_integer())
+                    .col(big_integer(ContestRegistrations::UserId))
+                    .col(big_integer(ContestRegistrations::ContestId))
                     .col(
                         timestamp(ContestRegistrations::RegisteredAt)
                             .default(Expr::current_timestamp()),

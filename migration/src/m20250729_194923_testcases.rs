@@ -11,8 +11,8 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Testcases::Table)
                     .if_not_exists()
-                    .col(pk_auto(Testcases::Id))
-                    .col(integer(Testcases::ProblemId))
+                    .col(pk_auto(Testcases::Id).big_integer())
+                    .col(big_integer(Testcases::ProblemId))
                     .col(text_null(Testcases::Input))
                     .col(text_null(Testcases::Output))
                     .foreign_key(

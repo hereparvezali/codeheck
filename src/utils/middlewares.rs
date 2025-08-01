@@ -1,0 +1,33 @@
+use axum::{
+    extract::{Request, State},
+    middleware::Next,
+};
+use axum_extra::{
+    TypedHeader,
+    headers::{Authorization, authorization::Bearer},
+};
+use jsonwebtoken::{DecodingKey, Validation, decode};
+
+use crate::{
+    dto::MyErr,
+    utils::{app_state::AppState, jwt::Claim},
+};
+
+pub async fn authorizer(
+    TypedHeader(token): TypedHeader<Authorization<Bearer>>,
+    State(state): State<AppState>,
+    mut req: Request,
+    next: Next,
+) -> Result<axum::http::Response<axum::body::Body>, MyErr> {
+    println!("{:?}", token.token());
+    let myclaim = decode::<Claim>(
+        token.token(),
+        &DecodingKey::from_secret(state.secret.as_ref().as_bytes()),
+        &Validation::default(),
+    )
+    .map_err(|_| MyErr::Unauthorized("User is not AUTHORIZED??".to_string()))?
+    .claims;
+    req.extensions_mut().insert(myclaim.clone());
+
+    Ok(next.run(req).await)
+}

@@ -12,7 +12,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Problems::Table)
                     .if_not_exists()
-                    .col(pk_auto(Problems::Id))
+                    .col(pk_auto(Problems::Id).big_integer())
                     .col(string(Problems::Title).string_len(128))
                     .col(string(Problems::Slug).string_len(128).unique_key())
                     .col(text_null(Problems::Statement))
@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                     .col(string_null(Problems::Difficulty).string_len(8))
                     .col(boolean(Problems::IsPublic).default(false))
                     .col(timestamp(Problems::CreatedAt).default(Expr::current_timestamp()))
-                    .col(integer_null(Problems::AuthorId))
+                    .col(big_integer_null(Problems::AuthorId))
                     .foreign_key(
                         ForeignKey::create()
                             .from(Problems::Table, Problems::AuthorId)

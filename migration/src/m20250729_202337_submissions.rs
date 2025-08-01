@@ -11,9 +11,9 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Submissions::Table)
                     .if_not_exists()
-                    .col(pk_auto(Submissions::Id))
-                    .col(integer(Submissions::UserId))
-                    .col(integer(Submissions::ProblemId))
+                    .col(pk_auto(Submissions::Id).big_integer())
+                    .col(big_integer(Submissions::UserId))
+                    .col(big_integer(Submissions::ProblemId))
                     .col(string(Submissions::Language).string_len(16))
                     .col(text(Submissions::Code).not_null())
                     .col(
@@ -26,7 +26,7 @@ impl MigrationTrait for Migration {
                     .col(small_integer_null(Submissions::Time))
                     .col(small_integer_null(Submissions::Memory))
                     .col(timestamp(Submissions::SubmittedAt).default(Expr::current_timestamp()))
-                    .col(integer_null(Submissions::ContestId))
+                    .col(big_integer_null(Submissions::ContestId))
                     .foreign_key(
                         ForeignKey::create()
                             .from(Submissions::Table, Submissions::UserId)

@@ -12,8 +12,8 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(ContestProblems::Table)
                     .if_not_exists()
-                    .col(integer(ContestProblems::ContestId))
-                    .col(integer(ContestProblems::ProblemId))
+                    .col(big_integer(ContestProblems::ContestId))
+                    .col(big_integer(ContestProblems::ProblemId))
                     .col(string_null(ContestProblems::Label).string_len(1))
                     .primary_key(
                         Index::create()
