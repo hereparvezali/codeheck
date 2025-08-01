@@ -41,7 +41,7 @@ pub async fn login(
             model.id.clone(),
             model.username.clone(),
             model.email.clone(),
-            5,
+            10000000,
         ),
         &EncodingKey::from_secret(&state.secret.as_bytes()),
     )

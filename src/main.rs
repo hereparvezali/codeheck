@@ -6,6 +6,8 @@ pub mod dto;
 pub mod entity;
 pub mod user;
 pub mod utils;
+pub mod problem;
+pub mod contest;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {

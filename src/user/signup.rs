@@ -34,10 +34,10 @@ pub async fn signup(
 
     if let Some(model) = find_duplicate {
         if model.email == usr.email {
-            return Err(MyErr::DuplicateEmail);
+            return Err(MyErr::Conflict("email".to_string()));
         }
         if model.username == usr.username {
-            return Err(MyErr::DuplicateUsername);
+            return Err(MyErr::Conflict("username".to_string()));
         }
     }
     if usr.username.is_empty() || usr.email.is_empty() || usr.password.is_empty() {

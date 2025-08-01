@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub enum MyErr {
     InternalServerError,
-    DuplicateUsername,
-    DuplicateEmail,
     BadRequest(String),
     NotFound(String),
     Unauthorized(String),
@@ -27,10 +25,7 @@ impl IntoResponse for MyErr {
             MyErr::InternalServerError => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()
             }
-            MyErr::DuplicateUsername => {
-                (StatusCode::CONFLICT, "Duplicate Username").into_response()
-            }
-            MyErr::DuplicateEmail => (StatusCode::CONFLICT, "Duplicate Email").into_response(),
+
             MyErr::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg).into_response(),
             MyErr::NotFound(msg) => (StatusCode::NOT_FOUND, msg).into_response(),
             MyErr::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg).into_response(),
@@ -60,8 +55,6 @@ pub struct CreateUserPayload {
     pub username: String,
     pub password: String,
 }
-
-
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum EmailOrUsername {
@@ -94,4 +87,18 @@ impl LoginUserResponse {
             access_token,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateProblemPayload {
+    pub title: String,
+    pub slug: String,
+    pub statement: Option<String>,
+    pub input_spec: Option<String>,
+    pub output_spec: Option<String>,
+    pub sample_inputs: Option<String>,
+    pub time_limit: i16,
+    pub memory_limit: i16,
+    pub difficulty: Option<String>,
+    pub author_id: Option<i64>,
 }
