@@ -102,3 +102,9 @@ pub struct CreateProblemPayload {
     pub difficulty: Option<String>,
     pub author_id: Option<i64>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RetrieveProblemQuery {
+    pub(crate) id: Option<i64>,
+    pub slug: Option<String>,
+}

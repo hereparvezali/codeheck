@@ -38,12 +38,12 @@ pub async fn login(
     let access_token = encode(
         &Header::default(),
         &Claim::new(
-            model.id.clone(),
+            model.id,
             model.username.clone(),
             model.email.clone(),
             10000000,
         ),
-        &EncodingKey::from_secret(&state.secret.as_bytes()),
+        &EncodingKey::from_secret(state.secret.as_bytes()),
     )
     .expect("==> Encoding error in access token");
 

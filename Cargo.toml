@@ -8,10 +8,9 @@ members = [".", "migration"]
 
 [dependencies]
 axum = { version = "0.8.4", features = ["macros"] }
-tokio = { version = "1.47.0", features = ["full"] }
+tokio = { version = "1.47.1", features = ["full"] }
 serde = { version = "1.0.219", features = ["derive"] }
 dotenvy = "0.15"
-tower = "0.5.2"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 anyhow = "1.0.98"
@@ -23,3 +22,4 @@ bcrypt = "0.17.0"
 serde_json = "1.0.141"
 jsonwebtoken = "9.3.1"
 axum-extra = { version = "0.10.1", features = ["typed-header"] }
+tower-http = { version = "0.6.6", features = ["cors"] }

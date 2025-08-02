@@ -1,15 +1,16 @@
-use axum::{Json, extract::State};
+use axum::{Extension, Json, extract::State};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
 use serde_json::json;
 
 use crate::{
     dto::{CreateProblemPayload, MyErr},
     entity::problems,
-    utils::app_state::AppState,
+    utils::{app_state::AppState, jwt::Claim},
 };
 
-pub async fn create_problem(
+pub async fn create(
     State(state): State<AppState>,
+    claim: Extension<Claim>,
     Json(problem_payload): Json<CreateProblemPayload>,
 ) -> Result<Json<problems::Model>, MyErr> {
     let find_conflict = problems::Entity::find()
@@ -35,7 +36,7 @@ pub async fn create_problem(
             time_limit: Set(problem_payload.time_limit),
             memory_limit: Set(problem_payload.memory_limit),
             difficulty: Set(problem_payload.difficulty),
-            author_id: Set(problem_payload.author_id),
+            author_id: Set(Some(claim.id)),
             ..Default::default()
         }
         .insert(state.db.as_ref())
