@@ -15,9 +15,9 @@ impl MigrationTrait for Migration {
                     .col(string(Contests::Title).string_len(128))
                     .col(string(Contests::Slug).string_len(128).unique_key())
                     .col(text_null(Contests::Description))
-                    .col(date_time(Contests::StartTime).not_null())
-                    .col(date_time(Contests::EndTime).not_null())
-                    .col(boolean(Contests::IsPublic).default(true))
+                    .col(timestamp_null(Contests::StartTime))
+                    .col(timestamp_null(Contests::EndTime))
+                    .col(boolean_null(Contests::IsPublic).default(true))
                     .col(big_integer_null(Contests::AuthorId))
                     .foreign_key(
                         ForeignKey::create()

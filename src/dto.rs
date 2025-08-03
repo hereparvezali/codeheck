@@ -1,4 +1,5 @@
 use axum::{http::StatusCode, response::IntoResponse};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -54,6 +55,7 @@ pub struct CreateUserPayload {
     pub email: String,
     pub username: String,
     pub password: String,
+    pub created_at: Option<NaiveDateTime>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -105,6 +107,23 @@ pub struct CreateProblemPayload {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RetrieveProblemQuery {
-    pub(crate) id: Option<i64>,
+    pub id: Option<i64>,
     pub slug: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateContestPayload {
+    pub title: String,
+    pub slug: String,
+    pub description: Option<String>,
+    pub start_time: NaiveDateTime,
+    pub end_time: NaiveDateTime,
+    pub is_public: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RetrieveUserinfoQuery {
+    pub id: Option<i64>,
+    pub username: Option<String>,
+    pub email: Option<String>,
 }

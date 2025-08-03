@@ -13,9 +13,9 @@ pub struct Model {
     pub slug: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
-    pub start_time: DateTime,
-    pub end_time: DateTime,
-    pub is_public: bool,
+    pub start_time: Option<DateTime>,
+    pub end_time: Option<DateTime>,
+    pub is_public: Option<bool>,
     pub author_id: Option<i64>,
 }
 

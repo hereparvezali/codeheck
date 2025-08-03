@@ -17,6 +17,7 @@ pub async fn signup(
         email: Set(usr.email.clone()),
         username: Set(usr.username.clone()),
         password: Set(usr.password.clone()),
+        created_at: Set(usr.created_at),
         ..Default::default()
     };
 

@@ -15,17 +15,18 @@ impl MigrationTrait for Migration {
                     .col(big_integer(Submissions::UserId))
                     .col(big_integer(Submissions::ProblemId))
                     .col(string(Submissions::Language).string_len(16))
-                    .col(text(Submissions::Code).not_null())
+                    .col(text_null(Submissions::Code))
                     .col(
                         string(Submissions::Status)
                             .string_len(20)
-                            .not_null()
                             .default("pending"),
                     )
                     .col(text_null(Submissions::Verdict))
                     .col(small_integer_null(Submissions::Time))
                     .col(small_integer_null(Submissions::Memory))
-                    .col(timestamp(Submissions::SubmittedAt).default(Expr::current_timestamp()))
+                    .col(
+                        timestamp_null(Submissions::SubmittedAt).default(Expr::current_timestamp()),
+                    )
                     .col(big_integer_null(Submissions::ContestId))
                     .foreign_key(
                         ForeignKey::create()

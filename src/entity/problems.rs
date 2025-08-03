@@ -18,11 +18,11 @@ pub struct Model {
     #[sea_orm(column_type = "Text", nullable)]
     pub output_spec: Option<String>,
     pub sample_inputs: Option<Json>,
-    pub time_limit: i16,
-    pub memory_limit: i16,
+    pub time_limit: Option<i16>,
+    pub memory_limit: Option<i16>,
     pub difficulty: Option<String>,
-    pub is_public: bool,
-    pub created_at: DateTime,
+    pub is_public: Option<bool>,
+    pub created_at: Option<DateTime>,
     pub author_id: Option<i64>,
 }
 

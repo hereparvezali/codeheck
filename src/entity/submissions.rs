@@ -11,14 +11,14 @@ pub struct Model {
     pub user_id: i64,
     pub problem_id: i64,
     pub language: String,
-    #[sea_orm(column_type = "Text")]
-    pub code: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub code: Option<String>,
     pub status: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub verdict: Option<String>,
     pub time: Option<i16>,
     pub memory: Option<i16>,
-    pub submitted_at: DateTime,
+    pub submitted_at: Option<DateTime>,
     pub contest_id: Option<i64>,
 }
 

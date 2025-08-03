@@ -13,8 +13,8 @@ pub struct Model {
     #[sea_orm(unique)]
     pub username: String,
     pub password: String,
-    pub rating: i32,
-    pub created_at: DateTime,
+    pub rating: Option<i16>,
+    pub created_at: Option<DateTime>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

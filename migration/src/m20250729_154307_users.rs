@@ -15,8 +15,8 @@ impl MigrationTrait for Migration {
                     .col(string(Users::Email).string_len(64).unique_key())
                     .col(string(Users::Username).string_len(32).unique_key())
                     .col(string(Users::Password).string_len(60))
-                    .col(integer(Users::Rating).default(0))
-                    .col(timestamp(Users::CreatedAt).default(Expr::current_timestamp()))
+                    .col(small_integer_null(Users::Rating).default(0))
+                    .col(timestamp_null(Users::CreatedAt).default(Expr::current_timestamp()))
                     .to_owned(),
             )
             .await
