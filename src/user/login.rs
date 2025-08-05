@@ -3,23 +3,25 @@ use jsonwebtoken::{EncodingKey, Header, encode};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
 use crate::{
-    dto::{LoginUserPayload, LoginUserResponse, MyErr},
+    dto::MyErr,
     entity::users,
     utils::{app_state::AppState, hashing::verify_password, jwt::Claim},
 };
+
+use super::dto::{LoginUserPayload, LoginUserResponse};
 
 pub async fn login(
     State(state): State<AppState>,
     Json(login_info): Json<LoginUserPayload>,
 ) -> Result<Json<LoginUserResponse>, MyErr> {
     let model = match login_info.email_or_username {
-        crate::dto::EmailOrUsername::Email(email) => {
+        super::dto::EmailOrUsername::Email(email) => {
             users::Entity::find()
                 .filter(users::Column::Email.eq(email))
                 .one(state.db.as_ref())
                 .await
         }
-        crate::dto::EmailOrUsername::Username(username) => {
+        super::dto::EmailOrUsername::Username(username) => {
             users::Entity::find()
                 .filter(users::Column::Username.eq(username))
                 .one(state.db.as_ref())

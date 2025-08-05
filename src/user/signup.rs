@@ -2,22 +2,22 @@ use axum::{Json, extract::State};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
 
 use crate::{
-    dto::{CreateUserPayload, MyErr},
+    dto::MyErr,
     entity::users,
     utils::{app_state::AppState, hashing::hash_password},
 };
+
+use super::dto::CreateUserPayload;
 
 pub async fn signup(
     State(state): State<AppState>,
     Json(mut usr): Json<CreateUserPayload>,
 ) -> Result<Json<users::Model>, MyErr> {
     usr.password = hash_password(&usr.password);
-
     let usr_active_model = users::ActiveModel {
         email: Set(usr.email.clone()),
         username: Set(usr.username.clone()),
         password: Set(usr.password.clone()),
-        created_at: Set(usr.created_at),
         ..Default::default()
     };
 

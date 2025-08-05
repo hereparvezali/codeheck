@@ -1,5 +1,4 @@
 use axum::{http::StatusCode, response::IntoResponse};
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -48,82 +47,4 @@ impl IntoResponse for MyErr {
             MyErr::Unknown(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg).into_response(),
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct CreateUserPayload {
-    pub email: String,
-    pub username: String,
-    pub password: String,
-    pub created_at: Option<NaiveDateTime>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum EmailOrUsername {
-    Email(String),
-    Username(String),
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub struct LoginUserPayload {
-    pub email_or_username: EmailOrUsername,
-    pub password: String,
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub struct LoginUserResponse {
-    id: i64,
-    username: String,
-    email: String,
-    access_token: String,
-}
-impl LoginUserResponse {
-    pub fn new(
-        id: i64,
-        username: String,
-        email: String,
-        access_token: String,
-    ) -> LoginUserResponse {
-        Self {
-            id,
-            username,
-            email,
-            access_token,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CreateProblemPayload {
-    pub title: String,
-    pub slug: String,
-    pub statement: Option<String>,
-    pub input_spec: Option<String>,
-    pub output_spec: Option<String>,
-    pub sample_inputs: Option<String>,
-    pub time_limit: i16,
-    pub memory_limit: i16,
-    pub difficulty: Option<String>,
-    pub author_id: Option<i64>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RetrieveProblemQuery {
-    pub id: Option<i64>,
-    pub slug: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CreateContestPayload {
-    pub title: String,
-    pub slug: String,
-    pub description: Option<String>,
-    pub start_time: NaiveDateTime,
-    pub end_time: NaiveDateTime,
-    pub is_public: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RetrieveUserinfoQuery {
-    pub id: Option<i64>,
-    pub username: Option<String>,
-    pub email: Option<String>,
 }

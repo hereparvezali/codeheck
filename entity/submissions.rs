@@ -4,13 +4,22 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "contest_registrations")]
+#[sea_orm(table_name = "submissions")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
     pub user_id: i64,
-    pub contest_id: i64,
-    pub registered_at: Option<DateTime>,
+    pub problem_id: i64,
+    pub language: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub code: Option<String>,
+    pub status: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub verdict: Option<String>,
+    pub time: Option<i16>,
+    pub memory: Option<i16>,
+    pub submitted_at: DateTime,
+    pub contest_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -20,9 +29,17 @@ pub enum Relation {
         from = "Column::ContestId",
         to = "super::contests::Column::Id",
         on_update = "NoAction",
-        on_delete = "Cascade"
+        on_delete = "SetNull"
     )]
     Contests,
+    #[sea_orm(
+        belongs_to = "super::problems::Entity",
+        from = "Column::ProblemId",
+        to = "super::problems::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    Problems,
     #[sea_orm(
         belongs_to = "super::users::Entity",
         from = "Column::UserId",
@@ -36,6 +53,12 @@ pub enum Relation {
 impl Related<super::contests::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Contests.def()
+    }
+}
+
+impl Related<super::problems::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Problems.def()
     }
 }
 

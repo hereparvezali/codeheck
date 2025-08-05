@@ -3,10 +3,12 @@ use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, Quer
 use serde_json::json;
 
 use crate::{
-    dto::{CreateProblemPayload, MyErr},
+    dto::MyErr,
     entity::problems,
     utils::{app_state::AppState, jwt::Claim},
 };
+
+use super::dto::CreateProblemPayload;
 
 pub async fn create(
     State(state): State<AppState>,

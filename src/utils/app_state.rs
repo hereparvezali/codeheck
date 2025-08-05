@@ -13,7 +13,7 @@ impl AppState {
             db: Arc::new(
                 Database::connect(env::var("DATABASE_URL").expect("==> Setup your DATABASE_URL"))
                     .await
-                    .expect("==> Database not working.."),
+                    .expect("==> Database not working??"),
             ),
             secret: Arc::new(env::var("SECRET").expect("==> Setup your SECRET")),
         }

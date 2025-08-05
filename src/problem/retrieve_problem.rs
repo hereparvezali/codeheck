@@ -4,11 +4,9 @@ use axum::{
 };
 use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
 
-use crate::{
-    dto::{MyErr, RetrieveProblemQuery},
-    entity::problems,
-    utils::app_state::AppState,
-};
+use crate::{dto::MyErr, entity::problems, utils::app_state::AppState};
+
+use super::dto::RetrieveProblemQuery;
 
 pub async fn retrieve(
     State(stt): State<AppState>,
