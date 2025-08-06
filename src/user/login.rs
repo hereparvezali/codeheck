@@ -14,14 +14,14 @@ pub async fn login(
     State(state): State<AppState>,
     Json(login_info): Json<LoginUserPayload>,
 ) -> Result<Json<LoginUserResponse>, MyErr> {
-    let model = match login_info.email_or_username {
-        super::dto::EmailOrUsername::Email(email) => {
+    let model = match login_info.username_or_email {
+        super::dto::UsernameOrEmail::Email(email) => {
             users::Entity::find()
                 .filter(users::Column::Email.eq(email))
                 .one(state.db.as_ref())
                 .await
         }
-        super::dto::EmailOrUsername::Username(username) => {
+        super::dto::UsernameOrEmail::Username(username) => {
             users::Entity::find()
                 .filter(users::Column::Username.eq(username))
                 .one(state.db.as_ref())

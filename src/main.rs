@@ -14,7 +14,6 @@ pub mod utils;
 
 #[tokio::main]
 async fn main() -> Result<(), MyErr> {
-    // tracing_subscriber::fmt::init();
     config::load();
 
     let tcp_listener = TcpListener::bind("localhost:8000")

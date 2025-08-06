@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -8,13 +9,13 @@ pub struct CreateUserPayload {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum EmailOrUsername {
+pub enum UsernameOrEmail {
     Email(String),
     Username(String),
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginUserPayload {
-    pub email_or_username: EmailOrUsername,
+    pub username_or_email: UsernameOrEmail,
     pub password: String,
 }
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,4 +46,22 @@ pub struct RetrieveUserinfoQuery {
     pub id: Option<i64>,
     pub username: Option<String>,
     pub email: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetrieveUserResponse {
+    pub username: String,
+    pub email: String,
+    pub rating: i16,
+    pub created_at: NaiveDateTime,
+}
+impl RetrieveUserResponse {
+    pub fn new(username: String, email: String, rating: i16, created_at: NaiveDateTime) -> Self {
+        Self {
+            username,
+            email,
+            rating,
+            created_at,
+        }
+    }
 }
