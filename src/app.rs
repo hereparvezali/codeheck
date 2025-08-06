@@ -2,9 +2,9 @@ use std::time::Duration;
 
 use crate::{
     contest::{create_contest, retrieve_contest, retrieve_contest_problems},
-    problem::{create_problem, retrieve_problem},
+    problem::{create_problem, retrieve_problem, retrieve_user_solved},
     submission::{create_submission, retrieve_submission},
-    user::{login, retrieve_user, retrieve_user_solved, signup},
+    user::{login, retrieve_user, signup},
     utils::{app_state::AppState, middlewares::authorizer},
 };
 use axum::{
@@ -30,7 +30,10 @@ pub async fn app() -> Router {
         .route("/contest/create", post(create_contest::create))
         .route("/problem/retrieve", get(retrieve_problem::retrieve))
         .route("/problem/create", post(create_problem::create))
-        .route("/user/retrieve_solved", get(retrieve_user_solved::retrieve))
+        .route(
+            "/problem/retrieve_user_solved",
+            get(retrieve_user_solved::retrieve),
+        )
         .route("/user/retrieve", get(retrieve_user::retrieve))
         .layer(middleware::from_fn_with_state(state.clone(), authorizer))
         .route("/user/login", post(login::login))
