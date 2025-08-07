@@ -6,6 +6,12 @@ edition = "2024"
 [workspace]
 members = [".", "migration"]
 
+[profile.release]
+strip = true
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+
 
 [dependencies]
 tokio = { version = "1.47.1", features = ["full"] }

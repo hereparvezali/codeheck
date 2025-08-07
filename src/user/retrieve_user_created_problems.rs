@@ -1,11 +1,9 @@
 use axum::{Extension, Json, extract::State};
-use sea_orm::{
-    ColumnTrait, Condition, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
-};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
 use crate::{
     dto::MyErr,
-    entity::{problems, submissions},
+    entity::problems,
     utils::{app_state::AppState, jwt::Claim},
 };
 
@@ -15,12 +13,7 @@ pub async fn retrieve(
 ) -> Result<Json<Vec<problems::Model>>, MyErr> {
     Ok(Json(
         problems::Entity::find()
-            .join(JoinType::InnerJoin, problems::Relation::Submissions.def())
-            .filter(
-                Condition::all()
-                    .add(submissions::Column::UserId.eq(claim.id))
-                    .add(submissions::Column::Status.eq("accepted")),
-            )
+            .filter(problems::Column::AuthorId.eq(claim.id))
             .all(stt.db.as_ref())
             .await
             .map_err(|e| MyErr::InternalServerErrorWithMessage(e.to_string()))?,

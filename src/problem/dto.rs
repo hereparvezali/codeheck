@@ -19,3 +19,10 @@ pub struct RetrieveProblemQuery {
     pub id: Option<i64>,
     pub slug: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateTestcasePayload {
+    pub problem_id: i64,
+    pub input: Option<String>,
+    pub output: Option<String>,
+}

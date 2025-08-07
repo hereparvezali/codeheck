@@ -1,5 +1,5 @@
-use super::dto::RetrieveContestInfoQuery;
 use crate::{
+    contest::dto::RetrieveContestInfoQuery,
     dto::MyErr,
     entity::{contest_problems, contests, problems},
     utils::app_state::AppState,

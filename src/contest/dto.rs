@@ -17,3 +17,15 @@ pub struct RetrieveContestInfoQuery {
     pub id: Option<i64>,
     pub slug: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddContestProblemPayload {
+    pub contest_id: i64,
+    pub problem_id: i64,
+    pub label: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RetrieveContestSubmissionsQuery {
+    pub contest_id: i64,
+}
