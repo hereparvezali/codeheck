@@ -26,3 +26,8 @@ pub struct CreateTestcasePayload {
     pub input: Option<String>,
     pub output: Option<String>,
 }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateProblemIsPublicQuery {
+    pub problem_id: i64,
+    pub is_public: bool,
+}

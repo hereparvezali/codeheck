@@ -1,4 +1,4 @@
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::{env, sync::Arc};
 
 #[derive(Clone, Debug)]
@@ -9,9 +9,15 @@ pub struct AppState {
 
 impl AppState {
     pub async fn new() -> AppState {
+        let mut opt =
+            ConnectOptions::new(env::var("DATABASE_URL").expect("==> Setup your DATABASE_URL"));
+        opt.max_connections(2)
+            .min_connections(0)
+            .connect_timeout(std::time::Duration::from_secs(2))
+            .idle_timeout(std::time::Duration::from_secs(30));
         AppState {
             db: Arc::new(
-                Database::connect(env::var("DATABASE_URL").expect("==> Setup your DATABASE_URL"))
+                Database::connect(opt)
                     .await
                     .expect("==> Database not working??"),
             ),

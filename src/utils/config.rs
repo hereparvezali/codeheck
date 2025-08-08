@@ -1,17 +1,5 @@
-use std::env;
-
 use dotenvy::dotenv;
 
-#[derive(Debug, Clone)]
-pub struct Config {
-    pub database_url: String,
-    pub secret: String,
-}
-
-pub fn load() -> Config {
-    dotenv().ok();
-    Config {
-        database_url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
-        secret: env::var("SECRET").unwrap_or("default".to_string()),
-    }
+pub fn load() {
+    dotenv().ok().expect("DotEnv Err??");
 }

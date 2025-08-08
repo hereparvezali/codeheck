@@ -3,7 +3,7 @@ use std::time::Duration;
 use crate::{
     contest::{
         add_contest_problem, create_contest, retrieve_contest, retrieve_contest_problems,
-        retrieve_contest_submissions,
+        retrieve_contest_submissions, retrieve_contest_user_submissions,
     },
     problem::{create_problem, create_testcase, retrieve_problem},
     submission::{create_submission, retrieve_submission},
@@ -28,6 +28,10 @@ pub async fn app() -> Router {
             get(retrieve_submission::retrieve),
         )
         .route("/submission/create", post(create_submission::create))
+        .route(
+            "/contest/retrieve_user_submissions",
+            get(retrieve_contest_user_submissions::retrieve),
+        )
         .route(
             "/contest/retrieve_submissions",
             get(retrieve_contest_submissions::retrieve),
