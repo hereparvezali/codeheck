@@ -16,8 +16,6 @@ pub async fn retrieve(
     Extension(claim): Extension<Claim>,
     Query(query): Query<RetrieveProblemsQuery>,
 ) -> Result<Json<RetrieveProblemsWithCursorPayload>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-
     let problems_vec = problems::Entity::find()
         .select_only()
         .columns([

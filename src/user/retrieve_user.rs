@@ -12,8 +12,6 @@ pub async fn retrieve(
     State(stt): State<AppState>,
     Extension(claim): Extension<Claim>,
 ) -> Result<Json<RetrieveUserResponse>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     Ok(Json(
         users::Entity::find_by_id(claim.id)
             .one(stt.db.as_ref())

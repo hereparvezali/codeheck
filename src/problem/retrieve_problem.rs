@@ -17,8 +17,6 @@ pub async fn retrieve(
     Extension(claim): Extension<Claim>,
     Query(query): Query<RetrieveProblemQuery>,
 ) -> Result<Json<problems::Model>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     Ok(Json(
         problems::Entity::find()
             .filter(

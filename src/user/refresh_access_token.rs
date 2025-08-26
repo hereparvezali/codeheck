@@ -11,8 +11,6 @@ pub async fn refresh(
     State(stt): State<AppState>,
     cookies: Cookies,
 ) -> Result<Json<SigninUserResponse>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     let refresh_token = cookies
         .get("refresh_token")
         .ok_or(MyErr::NotFound("refresh_token_not_found".to_string()))?

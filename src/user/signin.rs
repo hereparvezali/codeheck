@@ -16,8 +16,6 @@ pub async fn signin(
     cookies: Cookies,
     Json(signin_info): Json<SigninUserPayload>,
 ) -> Result<Json<SigninUserResponse>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     let model = users::Entity::find()
         .filter(
             users::Column::Username

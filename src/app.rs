@@ -9,7 +9,10 @@ use crate::{
         refresh_access_token, retrieve_user, retrieve_user_created_problems, retrieve_user_info,
         retrieve_user_solved_problems, retrieve_user_submissions, signin, signout, signup,
     },
-    utils::{app_state::AppState, middlewares::authorizer},
+    utils::{
+        app_state::AppState,
+        middlewares::{authorizer, giving_delay},
+    },
 };
 use axum::{
     Router, middleware,
@@ -80,6 +83,7 @@ pub async fn app() -> Router {
                 .layer(CookieManagerLayer::new())
                 .layer(TimeoutLayer::new(Duration::from_secs(5))),
         )
+        .layer(middleware::from_fn(giving_delay))
         .with_state(state)
 }
 

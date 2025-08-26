@@ -12,8 +12,6 @@ pub async fn retrieve(
     State(stt): State<AppState>,
     Query(query): Query<RetrieveUserinfoQuery>,
 ) -> Result<Json<RetrieveUserResponse>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     Ok(Json(
         users::Entity::find()
             .filter(

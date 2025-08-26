@@ -11,8 +11,6 @@ pub async fn signup(
     State(state): State<AppState>,
     Json(mut usr): Json<CreateUserPayload>,
 ) -> Result<Json<users::Model>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     usr.password = hash_password(&usr.password);
     let usr_active_model = users::ActiveModel {
         email: Set(usr.email.clone()),

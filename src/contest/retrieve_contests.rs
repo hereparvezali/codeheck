@@ -16,8 +16,6 @@ pub async fn retrieve(
     Extension(claim): Extension<Claim>,
     Query(query): Query<RetrieveContestsQuery>,
 ) -> Result<Json<RetrieveContestsWithCursor>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     let contests_vec = contests::Entity::find()
         .filter(
             Condition::all()

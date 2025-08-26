@@ -16,8 +16,6 @@ pub async fn retrieve(
     State(stt): State<AppState>,
     Query(query): Query<RetrieveContestInfoQuery>,
 ) -> Result<Json<Vec<RetrieveContestProblemsResponse>>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     Ok(Json(
         problems::Entity::find()
             .join(

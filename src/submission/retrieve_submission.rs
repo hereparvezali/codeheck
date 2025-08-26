@@ -10,8 +10,6 @@ pub async fn retrieve(
     State(stt): State<AppState>,
     Path(id): Path<i64>,
 ) -> Result<Json<submissions::Model>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     Ok(Json(
         submissions::Entity::find_by_id(id)
             .one(stt.db.as_ref())

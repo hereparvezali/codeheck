@@ -14,8 +14,6 @@ pub async fn create(
     Extension(claim): Extension<Claim>,
     Json(payload): Json<CreateTestcasePayload>,
 ) -> Result<Json<serde_json::Value>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     if problems::Entity::find_by_id(payload.problem_id)
         .select_only()
         .columns([problems::Column::Id, problems::Column::AuthorId])

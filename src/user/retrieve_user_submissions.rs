@@ -11,8 +11,6 @@ pub async fn retrieve(
     State(stt): State<AppState>,
     Extension(claim): Extension<Claim>,
 ) -> Result<Json<Vec<submissions::Model>>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     Ok(Json(
         submissions::Entity::find()
             .filter(submissions::Column::UserId.eq(claim.id))

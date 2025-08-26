@@ -15,8 +15,6 @@ pub async fn update(
     Extension(claim): Extension<Claim>,
     Query(query): Query<UpdateProblemIsPublicQuery>,
 ) -> Result<Json<problems::Model>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     if let Some(author) = problems::Entity::find_by_id(query.problem_id)
         .one(stt.db.as_ref())
         .await

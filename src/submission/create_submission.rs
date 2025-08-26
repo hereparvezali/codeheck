@@ -14,8 +14,6 @@ pub async fn create(
     Extension(claim): Extension<Claim>,
     Json(submitted): Json<CreateSubmissionPayload>,
 ) -> Result<Json<submissions::Model>, MyErr> {
-    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-
     Ok(Json(
         submissions::ActiveModel {
             user_id: Set(claim.id),
