@@ -12,6 +12,8 @@ pub async fn retrieve(
     State(stt): State<AppState>,
     Query(query): Query<RetrieveContestSubmissionsQuery>,
 ) -> Result<Json<Vec<submissions::Model>>, MyErr> {
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
     Ok(Json(
         submissions::Entity::find()
             .filter(submissions::Column::ContestId.eq(query.contest_id))

@@ -14,6 +14,8 @@ pub async fn create(
     Extension(claim): Extension<Claim>,
     Json(contest): Json<CreateContestPayload>,
 ) -> Result<Json<contests::Model>, MyErr> {
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
     if contests::Entity::find()
         .filter(contests::Column::Slug.eq(contest.slug.clone()))
         .one(stt.db.as_ref())

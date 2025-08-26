@@ -1,20 +1,31 @@
-use axum::{Extension, Json, extract::State};
-use sea_orm::EntityTrait;
-
-use crate::{
-    dto::MyErr,
-    entity::users,
-    utils::{app_state::AppState, jwt::Claim},
-};
-
 use super::dto::RetrieveUserResponse;
+use crate::{
+    dto::MyErr, entity::users, user::dto::RetrieveUserinfoQuery, utils::app_state::AppState,
+};
+use axum::{
+    Json,
+    extract::{Query, State},
+};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter, sea_query::Cond};
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Query(query): Query<RetrieveUserinfoQuery>,
 ) -> Result<Json<RetrieveUserResponse>, MyErr> {
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
     Ok(Json(
-        users::Entity::find_by_id(claim.id)
+        users::Entity::find()
+            .filter(
+                Cond::any()
+                    .add_option(query.id.map(|id| users::Column::Id.eq(id)))
+                    .add_option(
+                        query
+                            .username
+                            .map(|username| users::Column::Username.eq(username)),
+                    )
+                    .add_option(query.email.map(|email| users::Column::Email.eq(email))),
+            )
             .one(stt.db.as_ref())
             .await
             .map_err(|e| MyErr::InternalServerErrorWithMessage(e.to_string()))?

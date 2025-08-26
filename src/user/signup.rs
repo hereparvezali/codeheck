@@ -1,18 +1,18 @@
-use axum::{Json, extract::State};
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
-
+use super::dto::CreateUserPayload;
 use crate::{
     dto::MyErr,
     entity::users,
     utils::{app_state::AppState, hashing::hash_password},
 };
-
-use super::dto::CreateUserPayload;
+use axum::{Json, extract::State};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
 
 pub async fn signup(
     State(state): State<AppState>,
     Json(mut usr): Json<CreateUserPayload>,
 ) -> Result<Json<users::Model>, MyErr> {
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
     usr.password = hash_password(&usr.password);
     let usr_active_model = users::ActiveModel {
         email: Set(usr.email.clone()),
@@ -35,10 +35,10 @@ pub async fn signup(
 
     if let Some(model) = find_duplicate {
         if model.email == usr.email {
-            return Err(MyErr::Conflict("email".to_string()));
+            return Err(MyErr::Conflict("conflict_email".to_string()));
         }
         if model.username == usr.username {
-            return Err(MyErr::Conflict("username".to_string()));
+            return Err(MyErr::Conflict("conflict_username".to_string()));
         }
     }
     if usr.username.is_empty() || usr.email.is_empty() || usr.password.is_empty() {
@@ -51,12 +51,12 @@ pub async fn signup(
             "Username must be at least 3 characters and password at least 6 characters".to_string(),
         ));
     }
-    let inserted_model = usr_active_model
-        .insert(state.db.as_ref())
-        .await
-        .map_err(|_| {
-            MyErr::InternalServerErrorWithMessage("Insertion Error in database??".to_string())
-        })?;
-
-    Ok(Json(inserted_model))
+    Ok(Json(
+        usr_active_model
+            .insert(state.db.as_ref())
+            .await
+            .map_err(|_| {
+                MyErr::InternalServerErrorWithMessage("Insertion Error in database??".to_string())
+            })?,
+    ))
 }

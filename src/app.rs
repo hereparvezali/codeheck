@@ -1,15 +1,13 @@
-use std::time::Duration;
-
 use crate::{
     contest::{
         add_contest_problem, create_contest, retrieve_contest, retrieve_contest_problems,
-        retrieve_contest_submissions, retrieve_contest_user_submissions,
+        retrieve_contest_submissions, retrieve_contest_user_submissions, retrieve_contests,
     },
-    problem::{create_problem, create_testcase, retrieve_problem},
+    problem::{create_problem, create_testcases, retrieve_problem, retrieve_problems},
     submission::{create_submission, retrieve_submission},
     user::{
-        login, retrieve_user_created_problems, retrieve_user_info, retrieve_user_solved_problems,
-        retrieve_user_submissions, signup,
+        refresh_access_token, retrieve_user, retrieve_user_created_problems, retrieve_user_info,
+        retrieve_user_solved_problems, retrieve_user_submissions, signin, signout, signup,
     },
     utils::{app_state::AppState, middlewares::authorizer},
 };
@@ -17,7 +15,9 @@ use axum::{
     Router, middleware,
     routing::{get, post},
 };
+use std::time::Duration;
 use tower::ServiceBuilder;
+use tower_cookies::CookieManagerLayer;
 use tower_http::{cors::CorsLayer, timeout::TimeoutLayer};
 
 pub async fn app() -> Router {
@@ -28,6 +28,10 @@ pub async fn app() -> Router {
             get(retrieve_submission::retrieve),
         )
         .route("/submission/create", post(create_submission::create))
+        .route(
+            "/contest/retrieve_contests",
+            get(retrieve_contests::retrieve),
+        )
         .route(
             "/contest/retrieve_user_submissions",
             get(retrieve_contest_user_submissions::retrieve),
@@ -43,7 +47,11 @@ pub async fn app() -> Router {
         )
         .route("/contest/retrieve", get(retrieve_contest::retrieve))
         .route("/contest/create", post(create_contest::create))
-        .route("/problem/create_testcase", post(create_testcase::create))
+        .route("/problem/create_testcases", post(create_testcases::create))
+        .route(
+            "/problem/retrieve_problems",
+            get(retrieve_problems::retrieve),
+        )
         .route("/problem/retrieve", get(retrieve_problem::retrieve))
         .route("/problem/create", post(create_problem::create))
         .route(
@@ -58,15 +66,19 @@ pub async fn app() -> Router {
             "/user/retrieve_created",
             get(retrieve_user_created_problems::retrieve),
         )
-        .route("/user/retrieve", get(retrieve_user_info::retrieve))
+        .route("/user/retrieve", get(retrieve_user::retrieve))
+        .route("/user/retrieve_user", get(retrieve_user_info::retrieve))
         .layer(middleware::from_fn_with_state(state.clone(), authorizer))
-        .route("/user/login", post(login::login))
+        .route("/user/signout", get(signout::signout))
+        .route("/user/refresh", get(refresh_access_token::refresh))
+        .route("/user/signin", post(signin::signin))
         .route("/user/signup", post(signup::signup))
         .fallback(fallback_response)
         .layer(
             ServiceBuilder::new()
-                .layer(TimeoutLayer::new(Duration::from_secs(5)))
-                .layer(CorsLayer::permissive()),
+                .layer(CorsLayer::very_permissive())
+                .layer(CookieManagerLayer::new())
+                .layer(TimeoutLayer::new(Duration::from_secs(5))),
         )
         .with_state(state)
 }

@@ -1,5 +1,5 @@
 use dotenvy::dotenv;
 
 pub fn load() {
-    dotenv().ok().expect("DotEnv Err??");
+    dotenv().expect("DotEnv Err??");
 }

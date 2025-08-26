@@ -18,6 +18,7 @@ pub struct Model {
     #[sea_orm(column_type = "Text", nullable)]
     pub output_spec: Option<String>,
     pub sample_inputs: Option<Json>,
+    pub sample_outputs: Option<Json>,
     pub time_limit: i16,
     pub memory_limit: i16,
     pub difficulty: Option<String>,

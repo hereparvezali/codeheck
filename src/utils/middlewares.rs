@@ -19,12 +19,12 @@ pub async fn authorizer(
     next: Next,
 ) -> Result<axum::http::Response<axum::body::Body>, MyErr> {
     // println!("{:?}", token.token());
-    let myclaim = decode::<Claim>(
+    let myclaim: Claim = decode(
         token.token(),
         &DecodingKey::from_secret(state.secret.as_ref().as_bytes()),
         &Validation::default(),
     )
-    .map_err(|_| MyErr::Unauthorized("unauthorized_user??".to_string()))?
+    .map_err(|_| MyErr::Unauthorized("unauthorized_user".to_string()))?
     .claims;
     req.extensions_mut().insert(myclaim);
 

@@ -12,7 +12,9 @@ pub async fn add(
     Extension(claim): Extension<Claim>,
     Json(payload): Json<AddContestProblemPayload>,
 ) -> Result<Json<contest_problems::Model>, MyErr> {
-    let problem_details = problems::Entity::find_by_id(payload.problem_id.clone())
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
+    let problem_details = problems::Entity::find_by_id(payload.problem_id)
         .select_only()
         .columns([problems::Column::AuthorId, problems::Column::IsPublic])
         .one(stt.db.as_ref())

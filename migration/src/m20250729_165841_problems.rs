@@ -19,6 +19,7 @@ impl MigrationTrait for Migration {
                     .col(text_null(Problems::InputSpec))
                     .col(text_null(Problems::OutputSpec))
                     .col(json_null(Problems::SampleInputs))
+                    .col(json_null(Problems::SampleOutputs))
                     .col(small_integer(Problems::TimeLimit).default(1000))
                     .col(small_integer(Problems::MemoryLimit).default(256))
                     .col(string_null(Problems::Difficulty).string_len(8))
@@ -63,6 +64,7 @@ enum Problems {
     InputSpec,
     OutputSpec,
     SampleInputs,
+    SampleOutputs,
     TimeLimit,
     MemoryLimit,
     Difficulty,

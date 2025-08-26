@@ -8,19 +8,21 @@ use axum::{
     Extension, Json,
     extract::{Query, State},
 };
-use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
 pub async fn retrieve(
     State(stt): State<AppState>,
     Extension(claim): Extension<Claim>,
     Query(query): Query<RetrieveContestSubmissionsQuery>,
 ) -> Result<Json<Vec<submissions::Model>>, MyErr> {
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
     Ok(Json(
         submissions::Entity::find()
             .filter(
-                Condition::all()
-                    .add(submissions::Column::ContestId.eq(query.contest_id))
-                    .add(submissions::Column::UserId.eq(claim.id)),
+                submissions::Column::ContestId
+                    .eq(query.contest_id)
+                    .and(submissions::Column::UserId.eq(claim.id)),
             )
             .all(stt.db.as_ref())
             .await

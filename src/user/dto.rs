@@ -8,30 +8,25 @@ pub struct CreateUserPayload {
     pub password: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum UsernameOrEmail {
-    Email(String),
-    Username(String),
-}
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LoginUserPayload {
-    pub username_or_email: UsernameOrEmail,
+pub struct SigninUserPayload {
+    pub username_or_email: String,
     pub password: String,
 }
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LoginUserResponse {
+pub struct SigninUserResponse {
     id: i64,
     username: String,
     email: String,
     access_token: String,
 }
-impl LoginUserResponse {
+impl SigninUserResponse {
     pub fn new(
         id: i64,
         username: String,
         email: String,
         access_token: String,
-    ) -> LoginUserResponse {
+    ) -> SigninUserResponse {
         Self {
             id,
             username,

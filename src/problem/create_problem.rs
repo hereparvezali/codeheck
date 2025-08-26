@@ -15,6 +15,7 @@ pub async fn create(
     claim: Extension<Claim>,
     Json(problem_payload): Json<CreateProblemPayload>,
 ) -> Result<Json<problems::Model>, MyErr> {
+    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     let find_conflict = problems::Entity::find()
         .filter(problems::Column::Slug.eq(problem_payload.slug.clone()))
         .one(state.db.as_ref())
@@ -25,7 +26,7 @@ pub async fn create(
             )
         })?;
     if find_conflict.is_some() {
-        return Err(MyErr::Conflict("slug".to_string()));
+        return Err(MyErr::Conflict("conflict_slug".to_string()));
     }
     Ok(Json(
         problems::ActiveModel {
@@ -35,6 +36,7 @@ pub async fn create(
             input_spec: Set(problem_payload.input_spec),
             output_spec: Set(problem_payload.output_spec),
             sample_inputs: Set(Some(json!(problem_payload.sample_inputs))),
+            sample_outputs: Set(Some(json!(problem_payload.sample_outputs))),
             time_limit: Set(problem_payload.time_limit),
             memory_limit: Set(problem_payload.memory_limit),
             difficulty: Set(problem_payload.difficulty),

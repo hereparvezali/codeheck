@@ -1,7 +1,10 @@
 pub mod dto;
-pub mod login;
+pub mod refresh_access_token;
+pub mod retrieve_user;
 pub mod retrieve_user_created_problems;
 pub mod retrieve_user_info;
 pub mod retrieve_user_solved_problems;
 pub mod retrieve_user_submissions;
+pub mod signin;
+pub mod signout;
 pub mod signup;
