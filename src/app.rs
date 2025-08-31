@@ -1,7 +1,8 @@
 use crate::{
     contest::{
-        add_contest_problem, create_contest, retrieve_contest, retrieve_contest_problems,
-        retrieve_contest_submissions, retrieve_contest_user_submissions, retrieve_contests,
+        add_contest_problem, create_contest, create_register, delete_register, retrieve_contest,
+        retrieve_contest_problems, retrieve_contest_submissions, retrieve_contest_user_submissions,
+        retrieve_contests,
     },
     problem::{create_problem, create_testcases, retrieve_problem, retrieve_problems},
     submission::{create_submission, retrieve_submission},
@@ -16,7 +17,7 @@ use crate::{
 };
 use axum::{
     Router, middleware,
-    routing::{get, post},
+    routing::{delete, get, post},
 };
 use std::time::Duration;
 use tower::ServiceBuilder;
@@ -31,6 +32,14 @@ pub async fn app() -> Router {
             get(retrieve_submission::retrieve),
         )
         .route("/submission/create", post(create_submission::create))
+        .route(
+            "/contest/delete_register/{id}",
+            delete(delete_register::delete),
+        )
+        .route(
+            "/contest/create_register/{contest_id}",
+            post(create_register::create),
+        )
         .route(
             "/contest/retrieve_contests",
             get(retrieve_contests::retrieve),

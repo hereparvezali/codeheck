@@ -16,7 +16,7 @@ pub mod utils;
 async fn main() -> Result<(), MyErr> {
     config::load();
 
-    let tcp_listener = TcpListener::bind("localhost:8000")
+    let tcp_listener = TcpListener::bind("0.0.0.0:8000")
         .await
         .map_err(|e| MyErr::Unknown(e.to_string()))?;
 
