@@ -1,4 +1,4 @@
-use crate::app::app;
+use crate::{app::app, utils::config};
 use dto::MyErr;
 use tokio::net::TcpListener;
 
@@ -14,7 +14,7 @@ pub mod utils;
 
 #[tokio::main]
 async fn main() -> Result<(), MyErr> {
-    // config::load();
+    config::load();
 
     let tcp_listener = TcpListener::bind("0.0.0.0:8000")
         .await
