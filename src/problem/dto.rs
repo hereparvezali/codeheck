@@ -39,13 +39,13 @@ pub struct UpdateProblemIsPublicQuery {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RetrieveProblemsQuery {
+pub struct RetrieveProblemsQueryWithCursor {
     pub cursor: Option<i64>,
     pub limit: Option<u64>,
     pub difficulty: Option<String>,
 }
 #[derive(Debug, Serialize, Deserialize, FromQueryResult)]
-pub struct RetrieveProblemsPayload {
+pub struct RetrieveProblemsResponse {
     pub id: i64,
     pub slug: String,
     pub title: String,
@@ -54,9 +54,9 @@ pub struct RetrieveProblemsPayload {
     pub created_at: NaiveDateTime,
 }
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RetrieveProblemsWithCursorPayload {
+pub struct RetrieveProblemsWithCursorResponse {
     pub cursor: Option<i64>,
-    pub problems: Vec<RetrieveProblemsPayload>,
+    pub problems: Vec<RetrieveProblemsResponse>,
 }
 
 #[derive(Debug, Serialize, Deserialize, FromQueryResult)]

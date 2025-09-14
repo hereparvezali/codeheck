@@ -7,8 +7,9 @@ use crate::{
     problem::{create_problem, create_testcases, retrieve_problem, retrieve_problems},
     submission::{create_submission, retrieve_submission},
     user::{
-        refresh_access_token, retrieve_user, retrieve_user_created_problems, retrieve_user_info,
-        retrieve_user_solved_problems, retrieve_user_submissions, signin, signout, signup,
+        refresh_access_token, retrieve_user, retrieve_user_contests, retrieve_user_info,
+        retrieve_user_problems, retrieve_user_solved_problems, retrieve_user_submissions, signin,
+        signout, signup,
     },
     utils::{
         app_state::AppState,
@@ -75,8 +76,12 @@ pub async fn app() -> Router {
             get(retrieve_user_solved_problems::retrieve),
         )
         .route(
-            "/user/retrieve_created",
-            get(retrieve_user_created_problems::retrieve),
+            "/user/retrieve_contests",
+            get(retrieve_user_contests::retrieve),
+        )
+        .route(
+            "/user/retrieve_problems",
+            get(retrieve_user_problems::retrieve),
         )
         .route("/user/retrieve", get(retrieve_user::retrieve))
         .route("/user/retrieve_user", get(retrieve_user_info::retrieve))

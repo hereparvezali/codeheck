@@ -1,20 +1,21 @@
-use super::dto::RetrieveProblemsQueryWithCursor;
+use super::dto::RetrieveProblemsQuery;
 use crate::{
     dto::MyErr,
     entity::problems,
-    problem::dto::{RetrieveProblemsResponse, RetrieveProblemsWithCursorResponse},
-    utils::app_state::AppState,
+    problem::dto::{RetrieveProblemsPayload, RetrieveProblemsWithCursorPayload},
+    utils::{app_state::AppState, jwt::Claim},
 };
 use axum::{
-    Json,
+    Extension, Json,
     extract::{Query, State},
 };
 use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter, QueryOrder, QuerySelect};
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Query(query): Query<RetrieveProblemsQueryWithCursor>,
-) -> Result<Json<RetrieveProblemsWithCursorResponse>, MyErr> {
+    Extension(claim): Extension<Claim>,
+    Query(query): Query<RetrieveProblemsQuery>,
+) -> Result<Json<RetrieveProblemsWithCursorPayload>, MyErr> {
     let problems_vec = problems::Entity::find()
         .select_only()
         .columns([
@@ -27,8 +28,8 @@ pub async fn retrieve(
         ])
         .filter(
             Condition::all()
+                .add(problems::Column::AuthorId.eq(claim.id))
                 .add_option(query.cursor.map(|cursor| problems::Column::Id.lt(cursor)))
-                .add(problems::Column::IsPublic.eq(true))
                 .add_option(
                     query
                         .difficulty
@@ -37,11 +38,11 @@ pub async fn retrieve(
         )
         .order_by_desc(problems::Column::Id)
         .limit(query.limit)
-        .into_model::<RetrieveProblemsResponse>()
+        .into_model::<RetrieveProblemsPayload>()
         .all(stt.db.as_ref())
         .await
         .map_err(|e| MyErr::InternalServerErrorWithMessage(e.to_string()))?;
-    Ok(Json(RetrieveProblemsWithCursorResponse {
+    Ok(Json(RetrieveProblemsWithCursorPayload {
         cursor: problems_vec.last().map(|x| x.id),
         problems: problems_vec,
     }))
