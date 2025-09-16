@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     contest::dto::{ContestsResponse, RetrieveContestsQuery, RetrieveContestsWithCursor},
     dto::MyErr,
@@ -12,7 +14,7 @@ use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter, QueryOrder, Quer
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Query(query): Query<RetrieveContestsQuery>,
 ) -> Result<Json<RetrieveContestsWithCursor>, MyErr> {
     let contests_vec = contests::Entity::find()

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{Extension, Json, extract::State};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
 
@@ -11,7 +13,7 @@ use super::dto::CreateContestPayload;
 
 pub async fn create(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Json(contest): Json<CreateContestPayload>,
 ) -> Result<Json<contests::Model>, MyErr> {
     if contests::Entity::find()

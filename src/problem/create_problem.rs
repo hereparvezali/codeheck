@@ -1,18 +1,17 @@
-use axum::{Extension, Json, extract::State};
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
-use serde_json::json;
-
+use super::dto::CreateProblemPayload;
 use crate::{
     dto::MyErr,
     entity::problems,
     utils::{app_state::AppState, jwt::Claim},
 };
-
-use super::dto::CreateProblemPayload;
+use axum::{Extension, Json, extract::State};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
+use serde_json::json;
+use std::sync::Arc;
 
 pub async fn create(
     State(state): State<AppState>,
-    claim: Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Json(problem_payload): Json<CreateProblemPayload>,
 ) -> Result<Json<problems::Model>, MyErr> {
     let find_conflict = problems::Entity::find()

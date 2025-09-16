@@ -8,10 +8,11 @@ use crate::{
 use axum::{Extension, Json, extract::State};
 use sea_orm::{ActiveValue::Set, EntityTrait, QuerySelect};
 use serde_json::json;
+use std::sync::Arc;
 
 pub async fn create(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Json(payload): Json<CreateTestcasePayload>,
 ) -> Result<Json<serde_json::Value>, MyErr> {
     if problems::Entity::find_by_id(payload.problem_id)

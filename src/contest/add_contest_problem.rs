@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::dto::AddContestProblemPayload;
 use crate::{
     dto::MyErr,
@@ -9,7 +11,7 @@ use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, QuerySelect};
 
 pub async fn add(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Json(payload): Json<AddContestProblemPayload>,
 ) -> Result<Json<contest_problems::Model>, MyErr> {
     let problem_details = problems::Entity::find_by_id(payload.problem_id)

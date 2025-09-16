@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     Extension, Json,
     extract::{Query, State},
@@ -14,7 +16,7 @@ use super::dto::RetrieveProblemQuery;
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Query(query): Query<RetrieveProblemQuery>,
 ) -> Result<Json<problems::Model>, MyErr> {
     Ok(Json(

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     dto::MyErr,
     entity::contest_registrations,
@@ -11,7 +13,7 @@ use sea_orm::{ActiveModelTrait, ActiveValue::Set};
 
 pub async fn create(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Path(contest_id): Path<i64>,
 ) -> Result<Json<contest_registrations::Model>, MyErr> {
     Ok(Json(

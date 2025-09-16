@@ -9,10 +9,11 @@ use axum::{
     extract::{Query, State},
 };
 use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
+use std::sync::Arc;
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Query(query): Query<RetrieveContestInfoQuery>,
 ) -> Result<Json<contests::Model>, MyErr> {
     Ok(Json(

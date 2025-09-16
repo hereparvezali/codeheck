@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{Extension, Json, extract::State};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set};
 
@@ -11,7 +13,7 @@ use super::dto::CreateSubmissionPayload;
 
 pub async fn create(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Json(submitted): Json<CreateSubmissionPayload>,
 ) -> Result<Json<submissions::Model>, MyErr> {
     Ok(Json(

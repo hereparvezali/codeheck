@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{Extension, Json, extract::State};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
@@ -9,7 +11,7 @@ use crate::{
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
 ) -> Result<Json<Vec<submissions::Model>>, MyErr> {
     Ok(Json(
         submissions::Entity::find()

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     dto::MyErr,
     entity::contest_registrations,
@@ -12,7 +14,7 @@ use serde_json::{Value, json};
 
 pub async fn delete(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Path(id): Path<i64>,
 ) -> Result<Json<Value>, MyErr> {
     let res = contest_registrations::Entity::delete_by_id(id)

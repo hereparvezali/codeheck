@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     dto::MyErr,
     entity::problems,
@@ -15,7 +17,7 @@ use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter, QueryOrder, Quer
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Query(query): Query<RetrieveProblemsQueryWithCursor>,
 ) -> Result<Json<RetrieveProblemsWithCursorResponse>, MyErr> {
     let res = problems::Entity::find()

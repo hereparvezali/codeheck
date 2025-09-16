@@ -13,19 +13,21 @@ use sea_orm::{
     ColumnTrait, Condition, EntityTrait, JoinType, QueryFilter, QueryOrder, QuerySelect,
     RelationTrait,
 };
+use std::sync::Arc;
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Query(query): Query<RetrieveContestsQuery>,
 ) -> Result<Json<RetrieveContestsWithCursor>, MyErr> {
+    let copied_claim = claim.clone();
     let contests_vec = contests::Entity::find()
         .join(
             JoinType::LeftJoin,
             contests::Relation::ContestRegistrations
                 .def()
                 .on_condition(move |_, _| {
-                    Condition::all().add(contest_registrations::Column::UserId.eq(claim.id))
+                    Condition::all().add(contest_registrations::Column::UserId.eq(copied_claim.id))
                 }),
         )
         .select_only()

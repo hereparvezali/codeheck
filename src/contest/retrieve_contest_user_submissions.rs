@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::dto::RetrieveContestSubmissionsQuery;
 use crate::{
     dto::MyErr,
@@ -12,7 +14,7 @@ use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
     Query(query): Query<RetrieveContestSubmissionsQuery>,
 ) -> Result<Json<Vec<submissions::Model>>, MyErr> {
     Ok(Json(

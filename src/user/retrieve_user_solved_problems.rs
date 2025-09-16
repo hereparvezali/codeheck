@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     dto::MyErr,
     entity::{problems, submissions},
@@ -10,7 +12,7 @@ use sea_orm::{
 
 pub async fn retrieve(
     State(stt): State<AppState>,
-    Extension(claim): Extension<Claim>,
+    Extension(claim): Extension<Arc<Claim>>,
 ) -> Result<Json<Vec<(problems::Model, Option<submissions::Model>)>>, MyErr> {
     Ok(Json(
         problems::Entity::find()

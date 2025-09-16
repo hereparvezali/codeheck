@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     dto::MyErr,
     utils::{app_state::AppState, jwt::Claim},
@@ -18,7 +20,7 @@ pub async fn authorizer(
     mut req: Request,
     next: Next,
 ) -> Result<axum::http::Response<axum::body::Body>, MyErr> {
-    req.extensions_mut().insert(
+    req.extensions_mut().insert(Arc::new(
         decode::<Claim>(
             token.token(),
             &DecodingKey::from_secret(state.secret.as_ref().as_bytes()),
@@ -26,7 +28,7 @@ pub async fn authorizer(
         )
         .map_err(|_| MyErr::Unauthorized("unauthorized_user".to_string()))?
         .claims,
-    );
+    ));
     Ok(next.run(req).await)
 }
 
