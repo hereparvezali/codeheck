@@ -1,24 +1,22 @@
+[package]
+name = "codeheck"
+version = "0.1.0"
+edition = "2024"
 
 [workspace]
-members = ["backend", "migration", "worker"]
-resolver = "3"
+members = [".", "migration", "worker"]
 
-[workspace.dependencies]
-tokio = "1.47.1"
-axum = "0.8.4"
-axum-extra = "0.10.1"
-tower = "0.5.2"
-tower-http = "0.6.6"
-tower-cookies = "0.11.0"
-
-serde = "1.0.219"
-serde_json = "1.0.143"
-
-sea-orm = "1.1.14"
-
-chrono = "0.4.41"
-dotenvy = "0.15.7"
+[dependencies]
+axum = { version = "0.8.4", features = ["macros"] }
+axum-extra = { version = "0.10.1", features = ["typed-header"] }
 bcrypt = "0.17.1"
+chrono = "0.4.42"
+dotenvy = "0.15.7"
 jsonwebtoken = "9.3.1"
-
 lapin = "3.6.0"
+sea-orm = { version = "1.1.16", features = ["runtime-tokio-rustls", "sqlx-postgres"] }
+serde = { version = "1.0.225", features = ["derive"] }
+serde_json = "1.0.145"
+tower = "0.5.2"
+tower-cookies = "0.11.0"
+tower-http = { version = "0.6.6", features = ["full"] }
