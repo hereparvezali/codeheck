@@ -15,7 +15,7 @@ impl MigrationTrait for Migration {
                     .col(big_integer(Submissions::UserId))
                     .col(big_integer(Submissions::ProblemId))
                     .col(string(Submissions::Language).string_len(16))
-                    .col(text_null(Submissions::Code))
+                    .col(text(Submissions::Code))
                     .col(
                         string(Submissions::Status)
                             .string_len(20)

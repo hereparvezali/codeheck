@@ -11,8 +11,8 @@ pub struct Model {
     pub user_id: i64,
     pub problem_id: i64,
     pub language: String,
-    #[sea_orm(column_type = "Text", nullable)]
-    pub code: Option<String>,
+    #[sea_orm(column_type = "Text")]
+    pub code: String,
     pub status: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub verdict: Option<String>,
