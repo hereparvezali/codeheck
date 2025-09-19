@@ -5,7 +5,7 @@ use crate::{
         retrieve_contests,
     },
     problem::{create_problem, create_testcases, retrieve_problem, retrieve_problems},
-    submission::{create_submission, retrieve_submission},
+    submission::{create_submission, retrieve_submission, update_submission},
     user::{
         refresh_access_token, retrieve_user, retrieve_user_contests, retrieve_user_info,
         retrieve_user_problems, retrieve_user_solved_problems, retrieve_user_submissions, signin,
@@ -18,7 +18,7 @@ use crate::{
 };
 use axum::{
     Router, middleware,
-    routing::{delete, get, post},
+    routing::{delete, get, post, put},
 };
 use std::time::Duration;
 use tower::ServiceBuilder;
@@ -28,6 +28,7 @@ use tower_http::{cors::CorsLayer, timeout::TimeoutLayer};
 pub async fn app() -> Router {
     let state = AppState::new().await;
     Router::new()
+        .route("/submission/update", put(update_submission::update))
         .route(
             "/submission/retrieve/{id}",
             get(retrieve_submission::retrieve),

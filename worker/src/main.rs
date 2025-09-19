@@ -5,6 +5,7 @@ use lapin::{
     options::{BasicAckOptions, BasicConsumeOptions, QueueDeclareOptions},
     types::FieldTable,
 };
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::{env, process::Stdio, sync::Arc};
 use tokio::{
@@ -21,6 +22,7 @@ pub struct SubmissionPublishQueue {
     pub time_limit: i16,
     pub memory_limit: i16,
     pub inputs_outputs: Vec<InputOutput>,
+    pub token: String,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InputOutput {
@@ -28,10 +30,31 @@ pub struct InputOutput {
     pub output: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ResponseFromWorker {
+    id: i64,
+    status: String,
+    verdict: Option<String>,
+    time: Option<i16>,
+    memory: Option<i16>,
+}
+impl ResponseFromWorker {
+    pub fn new(id: i64) -> Self {
+        Self {
+            id,
+            status: "AC".to_string(),
+            verdict: None,
+            time: None,
+            memory: None,
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
-    let semaphore = Arc::new(Semaphore::new(num_cpus::get()));
+    let api = Arc::new(env::var("SUBMISSION_API").expect("==> API must set??"));
+
     let channel = Connection::connect(
         &env::var("RABBITMQ_URL").expect("==> Set RABBITMQ_URL"),
         ConnectionProperties::default(),
@@ -61,9 +84,10 @@ async fn main() {
         .await
         .expect("Setup consumer failed??");
 
+    let semaphore = Arc::new(Semaphore::new(num_cpus::get()));
     while let Some(Ok(delivery)) = consumer.next().await {
         let permit = semaphore.clone().acquire_owned().await.unwrap();
-        tokio::spawn(handle_delivery(delivery, permit));
+        tokio::spawn(handle_delivery(delivery, api.clone(), permit));
     }
 }
 
@@ -84,7 +108,7 @@ fn image(language: &str) -> &str {
         _ => "rust:slim",
     }
 }
-pub async fn handle_delivery(delivery: Delivery, _permit: OwnedSemaphorePermit) {
+pub async fn handle_delivery(delivery: Delivery, api: Arc<String>, _permit: OwnedSemaphorePermit) {
     let payload: SubmissionPublishQueue = serde_json::from_slice(&delivery.data).unwrap();
 
     let code_path = format!(
@@ -95,8 +119,8 @@ pub async fn handle_delivery(delivery: Delivery, _permit: OwnedSemaphorePermit) 
     tokio::fs::write(&code_path, &payload.code).await.unwrap();
     let image = image(&payload.language);
 
-    let mut verdict = "AC".to_string();
-    for case in payload.inputs_outputs.iter() {
+    let mut response = ResponseFromWorker::new(payload.submission_id);
+    for (case_num, case) in payload.inputs_outputs.iter().enumerate() {
         let output = run_in_docker(
             image,
             &code_path,
@@ -107,12 +131,28 @@ pub async fn handle_delivery(delivery: Delivery, _permit: OwnedSemaphorePermit) 
         )
         .await;
 
-        if output.trim() != case.output.as_deref().unwrap_or_default().trim() {
-            verdict = "WA".to_string();
+        if output.trim_end_matches("\n").trim()
+            != case
+                .output
+                .as_deref()
+                .unwrap_or_default()
+                .trim_end_matches("\n")
+                .trim()
+        {
+            response.status = "WA".to_string();
+            response.verdict = Some(format!("WA in case number: {}", case_num));
             break;
         }
     }
-    println!("{}", verdict);
+
+    Client::new()
+        .put(api.to_string())
+        .json(&response)
+        .bearer_auth(payload.token)
+        .send()
+        .await
+        .unwrap();
+
     delivery.ack(BasicAckOptions::default()).await.unwrap();
     tokio::fs::remove_file(code_path).await.unwrap();
 }

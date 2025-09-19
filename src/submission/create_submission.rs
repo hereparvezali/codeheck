@@ -6,6 +6,7 @@ use crate::{
     utils::{app_state::AppState, jwt::Claim},
 };
 use axum::{Extension, Json, extract::State};
+use jsonwebtoken::{EncodingKey, Header, encode};
 use lapin::{BasicProperties, options::BasicPublishOptions};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter, QuerySelect,
@@ -55,6 +56,12 @@ pub async fn create(
         time_limit: time_memory_limit.time_limit,
         memory_limit: time_memory_limit.memory_limit,
         inputs_outputs: cases,
+        token: encode(
+            &Header::default(),
+            &claim,
+            &EncodingKey::from_secret(stt.secret.as_bytes()),
+        )
+        .unwrap(),
     })
     .unwrap();
 

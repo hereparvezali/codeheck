@@ -19,6 +19,7 @@ pub struct SubmissionPublishQueue {
     pub time_limit: i16,
     pub memory_limit: i16,
     pub inputs_outputs: Vec<InputOutput>,
+    pub token: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, FromQueryResult)]
@@ -31,4 +32,13 @@ pub struct InputOutput {
 pub struct TimeAndMemoryLimit {
     pub time_limit: i16,
     pub memory_limit: i16,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ResponseFromWorker {
+    pub id: i64,
+    pub status: String,
+    pub verdict: Option<String>,
+    pub time: Option<i16>,
+    pub memory: Option<i16>,
 }
