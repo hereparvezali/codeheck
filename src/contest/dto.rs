@@ -34,6 +34,11 @@ pub struct RetrieveContestSubmissionsQuery {
 pub struct RetrieveContestsQuery {
     pub cursor: Option<i64>,
     pub limit: Option<u64>,
+    pub offset: Option<u64>,
+
+    pub id: Option<i64>,
+    pub slug: Option<String>,
+    pub author_id: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromQueryResult)]

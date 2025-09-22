@@ -27,9 +27,7 @@ pub async fn signup(
         )
         .one(state.db.as_ref())
         .await
-        .map_err(|_| {
-            MyErr::InternalServerErrorWithMessage("Database connection error??".to_string())
-        })?;
+        .map_err(|e| MyErr::InternalServerErrorWithMessage(e.to_string()))?;
 
     if let Some(model) = find_duplicate {
         if model.email == usr.email {
@@ -53,8 +51,6 @@ pub async fn signup(
         usr_active_model
             .insert(state.db.as_ref())
             .await
-            .map_err(|_| {
-                MyErr::InternalServerErrorWithMessage("Insertion Error in database??".to_string())
-            })?,
+            .map_err(|e| MyErr::InternalServerErrorWithMessage(e.to_string()))?,
     ))
 }

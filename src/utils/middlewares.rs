@@ -31,8 +31,3 @@ pub async fn authorizer(
     ));
     Ok(next.run(req).await)
 }
-
-pub async fn giving_delay(req: Request, next: Next) -> axum::http::Response<axum::body::Body> {
-    // tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-    next.run(req).await
-}

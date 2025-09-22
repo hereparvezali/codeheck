@@ -1,10 +1,9 @@
+use crate::{dto::MyErr, entity::submissions, utils::app_state::AppState};
 use axum::{
     Json,
     extract::{Path, State},
 };
 use sea_orm::EntityTrait;
-
-use crate::{dto::MyErr, entity::submissions, utils::app_state::AppState};
 
 pub async fn retrieve(
     State(stt): State<AppState>,

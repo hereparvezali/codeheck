@@ -1,20 +1,15 @@
 use crate::{
     contest::{
         add_contest_problem, create_contest, create_register, delete_register, retrieve_contest,
-        retrieve_contest_problems, retrieve_contest_submissions, retrieve_contest_user_submissions,
-        retrieve_contests,
+        retrieve_contest_problems, retrieve_contests,
     },
     problem::{create_problem, create_testcases, retrieve_problem, retrieve_problems},
-    submission::{create_submission, retrieve_submission, update_submission},
+    submission::{create_submission, retrieve_submission, retrieve_submissions, update_submission},
     user::{
         refresh_access_token, retrieve_user, retrieve_user_contests, retrieve_user_info,
-        retrieve_user_problems, retrieve_user_solved_problems, retrieve_user_submissions, signin,
-        signout, signup,
+        retrieve_user_problems, retrieve_user_solved_problems, signin, signout, signup,
     },
-    utils::{
-        app_state::AppState,
-        middlewares::{authorizer, giving_delay},
-    },
+    utils::{app_state::AppState, middlewares::authorizer},
 };
 use axum::{
     Router, middleware,
@@ -33,6 +28,7 @@ pub async fn app() -> Router {
             "/submission/retrieve/{id}",
             get(retrieve_submission::retrieve),
         )
+        .route("/submissions/retrieve", get(retrieve_submissions::retrieve))
         .route("/submission/create", post(create_submission::create))
         .route(
             "/contest/delete_register/{id}",
@@ -45,14 +41,6 @@ pub async fn app() -> Router {
         .route(
             "/contest/retrieve_contests",
             get(retrieve_contests::retrieve),
-        )
-        .route(
-            "/contest/retrieve_user_submissions",
-            get(retrieve_contest_user_submissions::retrieve),
-        )
-        .route(
-            "/contest/retrieve_submissions",
-            get(retrieve_contest_submissions::retrieve),
         )
         .route("/contest/add_problem", get(add_contest_problem::add))
         .route(
@@ -68,10 +56,6 @@ pub async fn app() -> Router {
         )
         .route("/problem/retrieve", get(retrieve_problem::retrieve))
         .route("/problem/create", post(create_problem::create))
-        .route(
-            "/user/retrieve_submissions",
-            get(retrieve_user_submissions::retrieve),
-        )
         .route(
             "/user/retrieve_solved",
             get(retrieve_user_solved_problems::retrieve),
@@ -98,7 +82,6 @@ pub async fn app() -> Router {
                 .layer(CookieManagerLayer::new())
                 .layer(TimeoutLayer::new(Duration::from_secs(5))),
         )
-        .layer(middleware::from_fn(giving_delay))
         .with_state(state)
 }
 

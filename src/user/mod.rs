@@ -5,7 +5,6 @@ pub mod retrieve_user_contests;
 pub mod retrieve_user_info;
 pub mod retrieve_user_problems;
 pub mod retrieve_user_solved_problems;
-pub mod retrieve_user_submissions;
 pub mod signin;
 pub mod signout;
 pub mod signup;

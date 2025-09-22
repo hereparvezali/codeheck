@@ -1,7 +1,3 @@
-use crate::{app::app, utils::config};
-use dto::MyErr;
-use tokio::net::TcpListener;
-
 pub mod app;
 pub mod contest;
 pub mod dto;
@@ -12,17 +8,18 @@ pub mod submission;
 pub mod user;
 pub mod utils;
 
+use crate::{app::app, utils::config};
+use tokio::net::TcpListener;
+
 #[tokio::main]
-async fn main() -> Result<(), MyErr> {
+async fn main() {
     config::load();
 
     let tcp_listener = TcpListener::bind("0.0.0.0:8000")
         .await
-        .map_err(|e| MyErr::Unknown(e.to_string()))?;
+        .expect("Port can't bind. Maybe the port is already binded!!");
 
     axum::serve(tcp_listener, app().await)
         .await
-        .map_err(|e| MyErr::Unknown(e.to_string()))?;
-
-    Ok(())
+        .expect("Axum cant serve the application!!");
 }

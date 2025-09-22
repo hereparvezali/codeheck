@@ -2,7 +2,7 @@ use super::dto::RetrieveContestsQuery;
 use crate::{
     contest::dto::{ContestsResponse, RetrieveContestsWithCursor},
     dto::MyErr,
-    entity::{contest_registrations, contests},
+    entity::{contest_registrations, contests, problems},
     utils::{app_state::AppState, jwt::Claim},
 };
 use axum::{
@@ -20,14 +20,14 @@ pub async fn retrieve(
     Extension(claim): Extension<Arc<Claim>>,
     Query(query): Query<RetrieveContestsQuery>,
 ) -> Result<Json<RetrieveContestsWithCursor>, MyErr> {
-    let copied_claim = claim.clone();
+    let coppied_claim = claim.clone();
     let contests_vec = contests::Entity::find()
         .join(
             JoinType::LeftJoin,
             contests::Relation::ContestRegistrations
                 .def()
                 .on_condition(move |_, _| {
-                    Condition::all().add(contest_registrations::Column::UserId.eq(copied_claim.id))
+                    Condition::all().add(contest_registrations::Column::UserId.eq(coppied_claim.id))
                 }),
         )
         .select_only()
@@ -45,16 +45,25 @@ pub async fn retrieve(
         .column_as(contest_registrations::Column::RegisteredAt, "registered_at")
         .filter(
             Condition::all()
-                // .add(contest_registrations::Column::UserId.eq(claim.id))
                 .add_option(query.cursor.map(|cursor| contests::Column::Id.lt(cursor)))
                 .add(
-                    contests::Column::IsPublic
-                        .eq(true)
-                        .or(contests::Column::AuthorId.eq(claim.id)),
-                ),
+                    query
+                        .author_id
+                        .map_or(contests::Column::IsPublic.eq(true), |auid| {
+                            if auid != claim.id {
+                                problems::Column::IsPublic
+                                    .eq(true)
+                                    .and(problems::Column::AuthorId.eq(auid))
+                            } else {
+                                problems::Column::AuthorId.eq(auid)
+                            }
+                        }),
+                )
+                .add_option(query.id.map(|id| problems::Column::Id.eq(id))),
         )
         .order_by_desc(contests::Column::Id)
         .limit(query.limit)
+        .offset(query.offset)
         .into_model::<ContestsResponse>()
         .all(stt.db.as_ref())
         .await

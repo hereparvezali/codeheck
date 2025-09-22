@@ -42,7 +42,11 @@ pub struct UpdateProblemIsPublicQuery {
 pub struct RetrieveProblemsQueryWithCursor {
     pub cursor: Option<i64>,
     pub limit: Option<u64>,
+    pub offset: Option<u64>,
+    pub id: Option<i64>,
+    pub slug: Option<String>,
     pub difficulty: Option<String>,
+    pub author_id: Option<i64>,
 }
 #[derive(Debug, Serialize, Deserialize, FromQueryResult)]
 pub struct RetrieveProblemsResponse {
@@ -52,6 +56,7 @@ pub struct RetrieveProblemsResponse {
     pub difficulty: Option<String>,
     pub is_public: bool,
     pub created_at: NaiveDateTime,
+    pub author_id: Option<i64>,
 }
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RetrieveProblemsWithCursorResponse {

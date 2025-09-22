@@ -20,7 +20,7 @@ pub async fn retrieve(
             .filter(
                 Condition::all()
                     .add(submissions::Column::UserId.eq(claim.id))
-                    .add(submissions::Column::Status.eq("accepted")),
+                    .add(submissions::Column::Status.eq("AC")),
             )
             .select_also(submissions::Entity)
             .all(stt.db.as_ref())
