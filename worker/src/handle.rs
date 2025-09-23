@@ -41,6 +41,7 @@ pub async fn handle_delivery(
             payload.memory_limit,
             &payload.language,
             core_id,
+            &mut response,
         )
         .await;
 
@@ -49,7 +50,11 @@ pub async fn handle_delivery(
             let mut pool = core_pool.lock().await;
             pool.push_back(core_id);
         }
-
+        match response.status.as_str() {
+            "TLE" => break,
+            "CE/RE" => break,
+            _ => (),
+        }
         if output.trim_end_matches("\n").trim()
             != case
                 .output
@@ -59,7 +64,7 @@ pub async fn handle_delivery(
                 .trim()
         {
             response.status = "WA".to_string();
-            response.verdict = Some(format!("WA in case number: {}", case_num));
+            response.verdict = Some(format!("in case number: {}", case_num));
             break;
         }
     }

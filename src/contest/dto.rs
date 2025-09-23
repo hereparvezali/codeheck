@@ -16,6 +16,7 @@ pub struct CreateContestPayload {
 pub struct RetrieveContestInfoQuery {
     pub id: Option<i64>,
     pub slug: Option<String>,
+    pub user_id: Option<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

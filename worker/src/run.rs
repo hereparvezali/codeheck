@@ -1,7 +1,10 @@
 use std::process::Stdio;
 use tokio::io::AsyncWriteExt as _;
 
-use crate::languages::{cmd, ext};
+use crate::{
+    languages::{cmd, ext},
+    types::ResponseFromWorker,
+};
 
 pub async fn run_in_docker(
     image: &str,
@@ -11,6 +14,7 @@ pub async fn run_in_docker(
     memory_limit: i16,
     language: &str,
     core_id: usize,
+    response: &mut ResponseFromWorker,
 ) -> String {
     let (compile_cmd, run_cmd) = cmd(language);
     let time_sec = time_limit_ms as f64 / 1000.0;
@@ -52,13 +56,15 @@ pub async fn run_in_docker(
     let output = child.wait_with_output().await.unwrap();
 
     if output.status.code() == Some(124) {
-        return "TLE".to_string();
+        response.status = "TLE".to_string();
+        response.verdict = Some(String::from_utf8_lossy(&output.stderr).to_string())
     } else if !output.status.success() {
         if compile_cmd.is_some() {
-            return "CE/RE".to_string();
+            response.status = "CE/RE".to_string();
         } else {
-            return "RE".to_string();
+            response.status = "RE".to_string();
         }
+        response.verdict = Some(String::from_utf8_lossy(&output.stderr).to_string())
     }
 
     String::from_utf8_lossy(&output.stdout).to_string()
