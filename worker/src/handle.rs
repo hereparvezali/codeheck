@@ -43,7 +43,8 @@ pub async fn handle_delivery(
             core_id,
             &mut response,
         )
-        .await;
+        .await
+        .expect("Failed to run in docker");
 
         // 🔹 release the core
         {

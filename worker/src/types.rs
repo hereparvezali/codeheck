@@ -24,7 +24,7 @@ pub struct ResponseFromWorker {
     pub status: String,
     pub verdict: Option<String>,
     pub time: Option<i16>,
-    memory: Option<i16>,
+    pub memory: Option<i16>,
 }
 impl ResponseFromWorker {
     pub fn new(id: i64) -> Self {

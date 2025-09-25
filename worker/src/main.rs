@@ -1,10 +1,11 @@
+pub mod build_images;
 pub mod config;
 pub mod handle;
 pub mod languages;
 pub mod run;
 pub mod types;
 
-use crate::handle::handle_delivery;
+use crate::{build_images::build, handle::handle_delivery};
 use futures_util::StreamExt;
 use lapin::{options::BasicConsumeOptions, types::FieldTable};
 use std::{collections::VecDeque, env, sync::Arc};
@@ -12,6 +13,8 @@ use tokio::sync::{Mutex, Semaphore};
 
 #[tokio::main]
 async fn main() {
+    build().await;
+
     let (api, channel) = config::load().await;
     let mut consumer = channel
         .basic_consume(
