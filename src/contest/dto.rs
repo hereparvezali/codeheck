@@ -19,8 +19,12 @@ pub struct RetrieveContestInfoQuery {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AddContestProblemPayload {
+pub struct AddContestProblemsPayload {
     pub contest_id: i64,
+    pub problems: Vec<ProblemIdAndLabel>,
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProblemIdAndLabel {
     pub problem_id: i64,
     pub label: Option<String>,
 }
@@ -70,4 +74,9 @@ pub struct RetrieveContestProblemsResponse {
     pub slug: String,
     pub difficulty: Option<String>,
     pub label: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, FromQueryResult)]
+pub struct ProblemId {
+    pub id: i64,
 }

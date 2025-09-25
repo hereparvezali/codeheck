@@ -16,7 +16,7 @@ pub async fn build() {
                     &format!("{}", tag.split(".").nth(1).unwrap()),
                     "worker",
                 ])
-                .output()
+                .status()
                 .await
                 .unwrap();
         }
