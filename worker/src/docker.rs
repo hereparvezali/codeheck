@@ -48,7 +48,6 @@ pub async fn run(
         full_cmd.push_str(&format!("{} && ", compile));
     }
     full_cmd.push_str(&format!("{}", execution_cmd));
-
     let mut child = Command::new("docker")
         .args([
             "run",

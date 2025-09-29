@@ -3,12 +3,10 @@ mod language;
 mod models;
 mod queue;
 
-use std::sync::Arc;
-
-use futures_util::StreamExt as _;
-use tokio::sync::{Mutex, Semaphore};
-
 use crate::queue::handle_delivery;
+use futures_util::StreamExt as _;
+use std::sync::Arc;
+use tokio::sync::{Mutex, Semaphore};
 
 #[tokio::main]
 async fn main() {
@@ -28,7 +26,7 @@ async fn main() {
     };
 
     // Semaphore for spawning not more than core_count tast and core count for dedicating containers per core
-    let cpus = num_cpus::get();
+    let cpus = num_cpus::get() - 1; // skipped 1 core for relaxation
     let semaphore = Arc::new(Semaphore::new(cpus));
     let core_counter = Arc::new(Mutex::new(0));
 
@@ -36,14 +34,17 @@ async fn main() {
     while let Some(Ok(delivery)) = consumer.next().await {
         let api = api.clone();
         let semaphore = semaphore.clone();
-        let core_counter = core_counter.clone();
+
+        let core_id = {
+            let mut counter = core_counter.lock().await;
+            let id = *counter;
+            *counter = (*counter + 1) % cpus; // round-robin assignment
+            id
+        };
 
         tokio::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
-            let mut counter = core_counter.lock().await;
-            *counter = (*counter + 1) % cpus;
-
-            if let Err(e) = handle_delivery(delivery, api, *counter).await {
+            if let Err(e) = handle_delivery(delivery, api, core_id).await {
                 eprintln!("Error handling delivery: {}", e);
             }
         });

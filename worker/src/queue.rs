@@ -52,7 +52,7 @@ pub async fn handle_delivery(delivery: Delivery, api: Arc<String>, core_id: usiz
     tokio::fs::write(&code_path, &payload.code).await?;
 
     let mut response = ResponseFromWorker::new(payload.submission_id);
-
+    println!("{}", core_id);
     'case_loop: for (case_num, case) in payload.inputs_outputs.iter().enumerate() {
         let output = run(&code_path, &case.input, &payload, core_id)
             .await

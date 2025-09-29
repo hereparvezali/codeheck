@@ -32,7 +32,7 @@ pub fn cmd(language: &str) -> (Option<String>, String) {
             "/Main/a.out".to_string(),
         ),
         "rust" => (
-            Some("rustc -C opt-level=3 /Main/Main.rs -o /Main/a.out".to_string()),
+            Some("rustc /Main/Main.rs -o /Main/a.out".to_string()),
             "/Main/a.out".to_string(),
         ),
         "java" => (
