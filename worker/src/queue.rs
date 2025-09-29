@@ -10,6 +10,7 @@ use lapin::{
     types::FieldTable,
 };
 use std::sync::Arc;
+use tokio::fs;
 
 /// Initializes the RabbitMQ connection and declares the queue.
 pub async fn setup_rabbitmq() -> Result<(Arc<String>, Channel, Consumer)> {
@@ -42,21 +43,22 @@ pub async fn setup_rabbitmq() -> Result<(Arc<String>, Channel, Consumer)> {
 }
 
 /// Handles incoming messages from the RabbitMQ queue.
-pub async fn handle_delivery(delivery: Delivery, api: Arc<String>, core_id: usize) -> Result<()> {
+pub async fn handle(delivery: Delivery, api: Arc<String>, core_id: usize) -> Result<()> {
     let payload: SubmissionPublishQueue = serde_json::from_slice(&delivery.data)?;
-    let code_path = format!(
-        "/tmp/submission_{}.{}",
-        payload.submission_id,
-        ext(&payload.language)
-    );
-    tokio::fs::write(&code_path, &payload.code).await?;
+    let job_dir = format!("/tmp/codebox/{}", payload.submission_id);
+    let code_path = format!("{}/Main.{}", job_dir, ext(&payload.language));
+
+    // Create a unique directory for this job
+    if !fs::try_exists(&job_dir).await.unwrap() {
+        fs::create_dir(&job_dir).await.unwrap();
+    }
+
+    fs::write(&code_path, &payload.code).await?;
 
     let mut response = ResponseFromWorker::new(payload.submission_id);
-    println!("{}", core_id);
+
     'case_loop: for (case_num, case) in payload.inputs_outputs.iter().enumerate() {
-        let output = run(&code_path, &case.input, &payload, core_id)
-            .await
-            .unwrap();
+        let output = run(&case.input, &payload, core_id).await.unwrap();
         let stderr = String::from_utf8(output.stderr).unwrap();
 
         for line in stderr.lines() {
@@ -122,9 +124,10 @@ pub async fn handle_delivery(delivery: Delivery, api: Arc<String>, core_id: usiz
         .bearer_auth(payload.token)
         .send()
         .await?;
-
     delivery.ack(BasicAckOptions::default()).await?;
-    tokio::fs::remove_file(code_path).await?;
+
+    // Clean up the unique directory for this job
+    fs::remove_dir_all(&job_dir).await.unwrap();
 
     Ok(())
 }

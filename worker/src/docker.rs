@@ -3,7 +3,7 @@ use crate::{
     models::SubmissionPublishQueue,
 };
 use std::process::Output;
-use tokio::process::Command;
+use tokio::{fs, process::Command};
 
 /// Builds all Docker images defined in the worker directory.
 pub async fn build_images() -> anyhow::Result<(), anyhow::Error> {
@@ -30,12 +30,12 @@ pub async fn build_images() -> anyhow::Result<(), anyhow::Error> {
 }
 
 pub async fn run(
-    code_path: &str,
     input: &Option<String>,
     payload: &SubmissionPublishQueue,
     core_id: usize,
 ) -> anyhow::Result<Output, anyhow::Error> {
-    let (compile_cmd, run_cmd) = cmd(&payload.language);
+    let job_dir = format!("/tmp/codebox/{}", payload.submission_id);
+    let (compile_cmd, run_cmd) = cmd(&payload.language, &payload.submission_id);
 
     let execution_cmd = format!(
         "/usr/bin/time -v timeout -s 9 {}s {}", // -v for getting max memory usage
@@ -44,21 +44,22 @@ pub async fn run(
     );
 
     let mut full_cmd = String::new();
-    if let Some(ref compile) = compile_cmd {
+    if let Some(ref compile) = compile_cmd
+        && !fs::try_exists(format!("/tmp/codebox/{}/Main", payload.submission_id))
+            .await
+            .unwrap()
+    {
         full_cmd.push_str(&format!("{} && ", compile));
     }
     full_cmd.push_str(&format!("{}", execution_cmd));
+
     let mut child = Command::new("docker")
         .args([
             "run",
             "--rm",
             "-i",
             "-v",
-            &format!(
-                "{}:/Main/Main.{}",
-                code_path,
-                crate::language::ext(&payload.language)
-            ),
+            &format!("{}:/codebox/{}", job_dir, payload.submission_id), // Mount the unique directory
             "--cpus=1",
             &format!("--cpuset-cpus={}", core_id),
             &format!("--memory={}m", payload.memory_limit),

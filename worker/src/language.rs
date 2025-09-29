@@ -25,26 +25,27 @@ pub fn image(language: &str) -> &str {
 }
 
 /// Returns the compile and run commands for a given language.
-pub fn cmd(language: &str) -> (Option<String>, String) {
+pub fn cmd(language: &str, id: &i64) -> (Option<String>, String) {
+    let job_dir = format!("/codebox/{}", id); // Unique directory for each job
     match language.to_lowercase().as_str() {
         "cpp" | "c++" => (
-            Some("g++ /Main/Main.cpp -o /Main/a.out".to_string()),
-            "/Main/a.out".to_string(),
+            Some(format!("g++ {}/Main.cpp -o {}/Main", job_dir, job_dir)),
+            format!("{}/Main", job_dir),
         ),
         "rust" => (
-            Some("rustc /Main/Main.rs -o /Main/a.out".to_string()),
-            "/Main/a.out".to_string(),
+            Some(format!("rustc {}/Main.rs -o {}/Main", job_dir, job_dir)),
+            format!("{}/Main", job_dir),
         ),
         "java" => (
-            Some("javac /Main/Main.java".to_string()),
-            "java -cp /Main Main".to_string(),
+            Some(format!("javac {}/Main.java -d {}", job_dir, job_dir)), // Compile to the unique directory
+            format!("java -cp {} Main", job_dir), // Run from the unique directory
         ),
         "go" => (
-            Some("go build -o /Main/a.out /Main/Main.go".to_string()),
-            "/Main/a.out".to_string(),
+            Some(format!("go build -o {}/Main {}/Main.go", job_dir, job_dir)),
+            format!("{}/Main", job_dir),
         ),
-        "python" | "py" => (None, "python /Main/Main.py".to_string()),
-        "javascript" | "js" => (None, "node /Main/Main.js".to_string()),
-        _ => (None, "cat /Main/Main".to_string()),
+        "python" | "py" => (None, format!("python {}/Main.py", job_dir)),
+        "javascript" | "js" => (None, format!("node {}/Main.js", job_dir)),
+        _ => (None, format!("cat {}/Main", job_dir)),
     }
 }
