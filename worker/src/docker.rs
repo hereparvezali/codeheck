@@ -33,6 +33,7 @@ pub async fn run(
     code_path: &str,
     input: &Option<String>,
     payload: &SubmissionPublishQueue,
+    core_id: usize,
 ) -> anyhow::Result<Output, anyhow::Error> {
     let (compile_cmd, run_cmd) = cmd(&payload.language);
 
@@ -60,9 +61,9 @@ pub async fn run(
                 crate::language::ext(&payload.language)
             ),
             "--cpus=1",
+            &format!("--cpuset-cpus={}", core_id),
             &format!("--memory={}m", payload.memory_limit),
             "--network=none",
-            // &format!("--cpuset-cpus={}", core_id.to_string()),
             image(&payload.language),
             "sh",
             "-c",

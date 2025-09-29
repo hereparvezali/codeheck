@@ -42,7 +42,7 @@ pub async fn setup_rabbitmq() -> Result<(Arc<String>, Channel, Consumer)> {
 }
 
 /// Handles incoming messages from the RabbitMQ queue.
-pub async fn handle_delivery(delivery: Delivery, api: Arc<String>) -> Result<()> {
+pub async fn handle_delivery(delivery: Delivery, api: Arc<String>, core_id: usize) -> Result<()> {
     let payload: SubmissionPublishQueue = serde_json::from_slice(&delivery.data)?;
     let code_path = format!(
         "/tmp/submission_{}.{}",
@@ -54,7 +54,9 @@ pub async fn handle_delivery(delivery: Delivery, api: Arc<String>) -> Result<()>
     let mut response = ResponseFromWorker::new(payload.submission_id);
 
     'case_loop: for (case_num, case) in payload.inputs_outputs.iter().enumerate() {
-        let output = run(&code_path, &case.input, &payload).await.unwrap();
+        let output = run(&code_path, &case.input, &payload, core_id)
+            .await
+            .unwrap();
         let stderr = String::from_utf8(output.stderr).unwrap();
 
         for line in stderr.lines() {
