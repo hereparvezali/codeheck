@@ -1,9 +1,11 @@
 pub mod app;
 pub mod contest;
 pub mod dto;
+pub mod error;
 #[path = "../entity/mod.rs"]
 pub mod entity;
 pub mod problem;
+pub mod routes;
 pub mod submission;
 pub mod user;
 pub mod utils;
