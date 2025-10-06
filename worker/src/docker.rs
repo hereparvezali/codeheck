@@ -7,7 +7,7 @@ use tokio::{fs, process::Command};
 
 /// Builds all Docker images defined in the worker directory.
 pub async fn build_images() -> anyhow::Result<(), anyhow::Error> {
-    let mut dir = tokio::fs::read_dir("worker").await?;
+    let mut dir = tokio::fs::read_dir(".").await?;
     while let Some(entry) = dir.next_entry().await? {
         let path = entry.path();
         let name = path.file_name().unwrap();
@@ -19,8 +19,8 @@ pub async fn build_images() -> anyhow::Result<(), anyhow::Error> {
                     "-f",
                     &format!("{}", path.display()),
                     "-t",
-                    &format!("{}", tag.split('.').nth(1).unwrap()),
-                    "worker",
+                    tag.split('.').nth(1).unwrap(),
+                    ".",
                 ])
                 .stdin(std::process::Stdio::piped())
                 .stdout(std::process::Stdio::piped())
@@ -33,10 +33,7 @@ pub async fn build_images() -> anyhow::Result<(), anyhow::Error> {
                         String::from_utf8_lossy(&output.stderr)
                     ));
                 }
-                println!(
-                    "{} built successfully",
-                    tag.split('.').nth(1).unwrap()
-                );
+                println!("{} built successfully", tag.split('.').nth(1).unwrap());
             }
         }
     }
