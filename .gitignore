@@ -1,2 +1,5 @@
 */target
 */.env
+*/dist
+*/node_modules
+*/build
