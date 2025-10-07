@@ -80,8 +80,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const signout = async (): Promise<void> => {
-        setUser(null);
         try {
+            setUser(null);
             await fetch(base + "/user/signout", {
                 method: "GET",
                 credentials: "include",
@@ -123,9 +123,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Optional: on mount, refresh user to persist signin after reload
     useEffect(() => {
-        refresh();
+        const stored = localStorage.getItem("user");
+        if (!stored) {
+            refresh();
+        } else {
+            const parsed: User = JSON.parse(stored);
+            setUser(parsed);
+            setLoading(false);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!user) return;
+        localStorage.setItem("user", JSON.stringify(user));
+    }, [user]);
 
     return (
         <AuthContext.Provider
