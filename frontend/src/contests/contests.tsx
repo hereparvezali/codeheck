@@ -27,25 +27,19 @@ export default function Contests() {
     const navigator = useNavigate();
 
     const [contests, setContests] = useState<Contest[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | undefined>(undefined);
     const [cursor, setCursor] = useState<number | undefined>(undefined);
     const [cursors, setCursors] = useState<NumberOrUndefined[]>([]);
     const [page, setPage] = useState(1);
     const limit = 4;
 
     const fetchContests = async (cursor?: number) => {
-        setLoading(true);
-        setError(undefined);
-
         const params = new URLSearchParams({ limit: limit.toString() });
         if (cursor) params.append("cursor", cursor.toString());
 
         try {
-            const res = await authfetch(
-                `/contests?${params.toString()}`,
-                { method: "GET" },
-            );
+            const res = await authfetch(`/contests?${params.toString()}`, {
+                method: "GET",
+            });
 
             if (!res.ok) {
                 if (res.status === 401) {
@@ -64,9 +58,6 @@ export default function Contests() {
         } catch (e: any) {
             if (e.name === "AbortError") return;
             console.error("Failed to fetch contests:", e);
-            setError(e?.message ?? "Unknown error");
-        } finally {
-            setLoading(false);
         }
     };
     useEffect(() => {
@@ -120,7 +111,6 @@ export default function Contests() {
                 <Pagination
                     page={page}
                     cursor={cursor}
-                    loading={loading}
                     goNext={goNext}
                     goPrev={goPrev}
                 />
@@ -130,8 +120,12 @@ export default function Contests() {
                 contests={contests}
                 handleRegister={handleRegister}
                 handleUnRegister={handleUnRegister}
-                error={error}
-                loading={loading}
+                id={true}
+                title={true}
+                description={true}
+                start_time={true}
+                end_time={true}
+                edit={false}
             />
         </div>
     );

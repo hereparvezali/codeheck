@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../utils/contexts/authcontext";
 import { useState, type FormEvent, type ChangeEvent, useEffect } from "react";
 import type { ProblemPayload } from "../problems/problem";
@@ -8,26 +8,28 @@ interface Case {
     output: string;
 }
 
-interface CreateProblemPayload {
-    title: string;
-    slug: string;
+interface UpdateProblemPayload {
+    title?: string;
+    slug?: string;
     statement?: string;
     input_spec?: string;
     output_spec?: string;
     sample_inputs?: string;
     sample_outputs?: string;
-    time_limit: number;
-    memory_limit: number;
+    time_limit?: number;
+    memory_limit?: number;
     difficulty?: string;
-    is_public: boolean;
+    is_public?: boolean;
 }
 
-const CreateProblem = () => {
+const EditProblem = () => {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { authfetch } = useAuth();
 
+    const [problemId, setProblemId] = useState<number | null>(null);
     const [caseCount, setCaseCount] = useState(0);
-    const [formData, setFormData] = useState<CreateProblemPayload>({
+    const [formData, setFormData] = useState<UpdateProblemPayload>({
         title: "",
         slug: "",
         statement: "",
@@ -42,9 +44,55 @@ const CreateProblem = () => {
     });
     const [cases, setCases] = useState<Case[]>([]);
     const [loading, setLoading] = useState(false);
+    const [fetchLoading, setFetchLoading] = useState(true);
     const [testcaseloading, setTestcaseloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"basic" | "samples" | "testcases">("basic");
+
+    // Fetch existing problem data
+    useEffect(() => {
+        if (!id) return;
+        
+        setFetchLoading(true);
+        authfetch(`/problem?id=${id}`, {
+            method: "GET",
+        })
+            .then(async (res) => {
+                if (!res.ok) {
+                    if (res.status === 401) navigate("/signin");
+                    throw new Error(await res.text());
+                }
+                return res.json();
+            })
+            .then((data: ProblemPayload) => {
+                setProblemId(data.id);
+                setFormData({
+                    title: data.title,
+                    slug: data.slug,
+                    statement: data.statement || "",
+                    input_spec: data.input_spec || "",
+                    output_spec: data.output_spec || "",
+                    sample_inputs: typeof data.sample_inputs === 'string' 
+                        ? data.sample_inputs 
+                        : JSON.stringify(data.sample_inputs, null, 2),
+                    sample_outputs: typeof data.sample_outputs === 'string' 
+                        ? data.sample_outputs 
+                        : JSON.stringify(data.sample_outputs, null, 2),
+                    time_limit: data.time_limit,
+                    memory_limit: data.memory_limit,
+                    difficulty: data.difficulty || "easy",
+                    is_public: data.is_public,
+                });
+            })
+            .catch((err) => {
+                setError(err.message);
+                console.error(err);
+            })
+            .finally(() => {
+                setFetchLoading(false);
+            });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
     // Sync cases array length with caseCount
     useEffect(() => {
@@ -94,11 +142,13 @@ const CreateProblem = () => {
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+        if (!problemId) return;
+
         setLoading(true);
         setError(null);
 
-        authfetch("/problem", {
-            method: "POST",
+        authfetch(`/problem/${problemId}`, {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData),
         })
@@ -106,7 +156,7 @@ const CreateProblem = () => {
                 if (!res.ok) {
                     if (res.status === 401) navigate("/signin");
                     const text = await res.text();
-                    throw new Error(text || "Failed to create problem");
+                    throw new Error(text || "Failed to update problem");
                 }
                 return res.json();
             })
@@ -114,7 +164,7 @@ const CreateProblem = () => {
                 if (cases.length > 0) {
                     await handleCaseSubmit(data.id);
                 } else {
-                    navigate(`/problems/${formData.slug}`);
+                    navigate(`/problems/${formData.slug || id}`);
                 }
             })
             .catch((err) => setError(err.message))
@@ -125,7 +175,6 @@ const CreateProblem = () => {
 
     const handleCaseSubmit = async (problem_id: number) => {
         setTestcaseloading(true);
-        console.log(JSON.stringify({ problem_id: problem_id, cases: cases }));
         authfetch(`/problem/testcases`, {
             method: "POST",
             headers: {
@@ -141,9 +190,12 @@ const CreateProblem = () => {
                 return res.json();
             })
             .then(() => {
-                navigate(`/problems/${formData.slug}`);
+                navigate(`/problems/${formData.slug || id}`);
             })
-            .catch((e) => console.error(e))
+            .catch((e) => {
+                console.error(e);
+                setError("Failed to add test cases");
+            })
             .finally(() => setTestcaseloading(false));
     };
 
@@ -156,11 +208,22 @@ const CreateProblem = () => {
         setCaseCount((prev) => prev + 1);
     };
 
+    if (fetchLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin text-4xl mb-4">⏳</div>
+                    <p className="text-gray-600">Loading problem data...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-5xl mx-auto p-6 bg-white shadow-md rounded-lg my-6">
             <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2">Create New Problem</h2>
-                <p className="text-gray-600">Fill in the details to create a competitive programming problem</p>
+                <h2 className="text-3xl font-bold mb-2">Edit Problem</h2>
+                <p className="text-gray-600">Update the problem details and test cases</p>
             </div>
             
             {error && (
@@ -391,9 +454,9 @@ const CreateProblem = () => {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
                             <div>
-                                <p className="font-medium text-blue-900">Test Cases</p>
+                                <p className="font-medium text-blue-900">Add New Test Cases</p>
                                 <p className="text-sm text-blue-700">
-                                    Add hidden test cases to validate submissions
+                                    Add additional test cases (existing ones won't be deleted)
                                 </p>
                             </div>
                             <button
@@ -407,9 +470,9 @@ const CreateProblem = () => {
 
                         {cases.length === 0 ? (
                             <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                                <p className="text-gray-500">No test cases added yet</p>
+                                <p className="text-gray-500">No new test cases added</p>
                                 <p className="text-sm text-gray-400 mt-1">
-                                    Click "Add Test Case" to get started
+                                    Click "Add Test Case" to add new test cases
                                 </p>
                             </div>
                         ) : (
@@ -421,7 +484,7 @@ const CreateProblem = () => {
                                     >
                                         <div className="flex items-center justify-between mb-3">
                                             <h4 className="font-semibold text-gray-700">
-                                                Test Case #{idx + 1}
+                                                New Test Case #{idx + 1}
                                             </h4>
                                             <button
                                                 type="button"
@@ -493,10 +556,10 @@ const CreateProblem = () => {
                         {loading || testcaseloading ? (
                             <span className="flex items-center justify-center gap-2">
                                 <span className="animate-spin">⏳</span>
-                                {loading ? "Creating Problem..." : "Adding Test Cases..."}
+                                {loading ? "Updating Problem..." : "Adding Test Cases..."}
                             </span>
                         ) : (
-                            "Create Problem"
+                            "Update Problem"
                         )}
                     </button>
                 </div>
@@ -505,4 +568,4 @@ const CreateProblem = () => {
     );
 };
 
-export default CreateProblem;
+export default EditProblem;

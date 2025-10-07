@@ -1,6 +1,6 @@
 // import './App.css'
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Navbar from "./utils/navbar";
+import Navbar from "./components/navbar";
 import Signup from "./user/signup";
 import Signin from "./user/signin";
 import Profile from "./profile/profile";
@@ -13,6 +13,8 @@ import Problem from "./problems/problem";
 import Dashboard from "./admin/dashboard";
 import CreateProblem from "./admin/create_problem";
 import CreateContest from "./admin/create_contest";
+import EditProblem from "./admin/edit_problem";
+import EditContest from "./admin/edit_contest";
 
 const App = () => {
     return (
@@ -83,6 +85,22 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/edit_problem/:id"
+                        element={
+                            <ProtectedRoute>
+                                <EditProblem />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/edit_contest/:id"
+                        element={
+                            <ProtectedRoute>
+                                <EditContest />
                             </ProtectedRoute>
                         }
                     />

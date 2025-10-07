@@ -11,6 +11,8 @@ export interface Problem {
     difficulty?: string;
     is_public: boolean;
     created_at: string;
+    status?: string;
+    author_id?: number;
 }
 
 export interface ProblemsResponse {
@@ -20,7 +22,7 @@ export interface ProblemsResponse {
 type NumberOrUndefined = number | undefined;
 
 const Problems = () => {
-    const { authfetch } = useAuth();
+    const { authfetch, user } = useAuth();
     const navigator = useNavigate();
 
     const [loading, setLoading] = useState(false);
@@ -34,10 +36,12 @@ const Problems = () => {
     const limit = 4;
 
     const fetchProblems = async (cursor?: number) => {
+        if(!user) return;
         setLoading(true);
         try {
             const params = new URLSearchParams({ limit: limit.toString() });
             if (cursor) params.append("cursor", cursor.toString());
+            params.append("user_id", user.id.toString());
 
             const res = await authfetch(
                 `/problems?${params.toString()}`,
@@ -106,7 +110,7 @@ const Problems = () => {
                 )}
             </div>
             <div>
-                <ViewProblems problems={problems} show_is_public={false} />
+                <ViewProblems problems={problems} id={true} slug={true} status={true} title={true} difficulty={true} is_public={false} />
             </div>
         </div>
     );

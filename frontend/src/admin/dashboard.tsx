@@ -163,7 +163,7 @@ export default function Dashboard() {
                             + Create Problem
                         </button>
                     </div>
-                    <ViewProblems problems={problems} show_is_public={true} />
+                    <ViewProblems problems={problems} is_public={true} edit={true} />
                 </div>
             )}
 
@@ -185,7 +185,7 @@ export default function Dashboard() {
                             + Create Contest
                         </button>
                     </div>
-                    <ViewContests contests={contests} />
+                    <ViewContests contests={contests} is_public={true} edit={true} />
                 </div>
             )}
         </div>

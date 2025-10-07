@@ -75,6 +75,7 @@ pub async fn retrieve(
                                     .and(submissions::Column::UserId.eq(user_id))
                                     .and(submissions::Column::Status.eq(status)),
                             )
+                            .limit(1)
                             .to_owned();
 
                         SimpleExpr::SubQuery(
