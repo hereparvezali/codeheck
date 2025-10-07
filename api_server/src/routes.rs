@@ -10,7 +10,7 @@ pub fn api_routes(state: &AppState) -> Router<AppState> {
 
 /// Protected routes that require authentication
 fn protected_routes(state: &AppState) -> Router<AppState> {
-    use crate::utils::middlewares::authorizer;
+    use crate::utils::authenticator::authorizer;
     use axum::middleware;
 
     Router::new()

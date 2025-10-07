@@ -6,6 +6,7 @@ pub mod dto;
 pub mod retrieve_contest;
 pub mod retrieve_contest_problems;
 pub mod retrieve_contests;
+pub mod retrieve_leaderboard;
 
 use crate::utils::app_state::AppState;
 use axum::{
@@ -29,4 +30,5 @@ pub fn router() -> Router<AppState> {
             "/contest",
             get(retrieve_contest::retrieve).post(create_contest::create),
         )
+        .route("/contest/leaderboard", get(retrieve_leaderboard::retrieve))
 }
