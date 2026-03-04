@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -63,36 +63,16 @@ impl IntoResponse for AppError {
                 "DATABASE_ERROR",
                 format!("Database operation failed: {}", e),
             ),
-            AppError::AuthError(msg) => (
-                StatusCode::UNAUTHORIZED,
-                "AUTH_ERROR",
-                msg.clone(),
-            ),
-            AppError::Forbidden(msg) => (
-                StatusCode::FORBIDDEN,
-                "FORBIDDEN",
-                msg.clone(),
-            ),
+            AppError::AuthError(msg) => (StatusCode::UNAUTHORIZED, "AUTH_ERROR", msg.clone()),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, "FORBIDDEN", msg.clone()),
             AppError::NotFound { resource } => (
                 StatusCode::NOT_FOUND,
                 "NOT_FOUND",
                 format!("{} not found", resource),
             ),
-            AppError::Validation(msg) => (
-                StatusCode::BAD_REQUEST,
-                "VALIDATION_ERROR",
-                msg.clone(),
-            ),
-            AppError::Conflict(msg) => (
-                StatusCode::CONFLICT,
-                "CONFLICT",
-                msg.clone(),
-            ),
-            AppError::BadRequest(msg) => (
-                StatusCode::BAD_REQUEST,
-                "BAD_REQUEST",
-                msg.clone(),
-            ),
+            AppError::Validation(msg) => (StatusCode::BAD_REQUEST, "VALIDATION_ERROR", msg.clone()),
+            AppError::Conflict(msg) => (StatusCode::CONFLICT, "CONFLICT", msg.clone()),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, "BAD_REQUEST", msg.clone()),
             AppError::InternalServer(msg) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "INTERNAL_ERROR",
@@ -125,8 +105,6 @@ impl IntoResponse for AppError {
             message,
             details: None,
         };
-
-        tracing::error!("Error response: {:?} - {}", status, self);
 
         (status, Json(error_response)).into_response()
     }
@@ -178,4 +156,3 @@ impl AppError {
         Self::ServiceUnavailable(message.into())
     }
 }
-

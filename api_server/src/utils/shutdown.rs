@@ -12,7 +12,4 @@ pub async fn shutdown_signal() {
         _ = terminate.recv() => {},
         _ = interrupt.recv() => {},
     }
-
-    tracing::info!("Shutdown signal received, starting graceful shutdown...");
-    tracing::info!("Waiting for in-flight requests to complete...");
 }

@@ -24,10 +24,7 @@ pub async fn authorizer(
         &DecodingKey::from_secret(state.config.jwt.secret.as_bytes()),
         &Validation::default(),
     )
-    .map_err(|e| {
-        tracing::warn!("JWT validation failed: {}", e);
-        AppError::auth("Invalid or expired token")
-    })?
+    .map_err(|_| AppError::auth("Invalid or expired token"))?
     .claims;
 
     // tracing::debug!("User authenticated: {} ({})", claims.username, claims.id);

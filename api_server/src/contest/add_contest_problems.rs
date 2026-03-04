@@ -1,8 +1,5 @@
 use crate::{
-    contest::dto::{AddContestProblemsPayload, ProblemId},
-    entity::{contest_problems, problems},
-    error::AppError,
-    utils::{app_state::AppState, security::Claim},
+    contest::dto::{AddContestProblemsPayload, ProblemId}, entity::{contest_problems, problems}, error::AppError, utils::{app_state::AppState, security::Claim}
 };
 use axum::{Extension, Json, debug_handler, extract::State};
 use sea_orm::{ActiveValue::Set, ColumnTrait, Condition, EntityTrait, QueryFilter, QuerySelect};
@@ -19,6 +16,11 @@ pub async fn add(
         .iter()
         .map(|id_label| id_label.problem_id)
         .collect::<Vec<i64>>();
+    let problem_labels = payload
+        .problems
+        .iter()
+        .map(|id_label| id_label.label.clone())
+        .collect::<Vec<Option<String>>>();
 
     let fetched_ids = problems::Entity::find()
         .filter(
@@ -38,11 +40,11 @@ pub async fn add(
         .map_err(|e| AppError::internal(e.to_string()))?;
     let active_models = fetched_ids
         .iter()
-        .enumerate()
-        .map(|(i, problem_id)| contest_problems::ActiveModel {
-            contest_id: Set(payload.contest_id),
+        .zip(problem_labels)
+        .map(|(problem_id, label)| contest_problems::ActiveModel {
+            contest_id: Set(payload.id),
             problem_id: Set(problem_id.id),
-            label: Set(Some((b'A' + i as u8).to_string())),
+            label: Set(label),
         })
         .collect::<Vec<contest_problems::ActiveModel>>();
 

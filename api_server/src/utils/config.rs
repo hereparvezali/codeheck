@@ -100,7 +100,7 @@ impl Config {
         }
 
         if self.jwt.secret.len() < 8 {
-            return Err("JWT secret must be at least 16 characters".to_string());
+            return Err("JWT secret must be at least 8 characters".to_string());
         }
 
         Ok(())
@@ -109,5 +109,4 @@ impl Config {
 
 pub fn load() {
     dotenvy::dotenv().ok();
-    tracing::info!("Environment variables loaded");
 }

@@ -9,6 +9,7 @@ use lapin::{
     options::{BasicAckOptions, BasicConsumeOptions, QueueDeclareOptions},
     types::FieldTable,
 };
+use rustls::crypto::ring;
 use std::sync::Arc;
 use tokio::fs;
 
@@ -19,7 +20,9 @@ pub async fn setup_rabbitmq() -> Result<(Arc<String>, Channel, Consumer)> {
     let api = Arc::new(std::env::var("SUBMISSION_API")?);
     let rabbitmq_url = std::env::var("RABBITMQ_URL")?;
     let hostname = std::env::var("HOSTNAME")?;
-
+    ring::default_provider()
+        .install_default()
+        .map_err(|_| anyhow::anyhow!("Failed to install default provider"))?;
     let connection = Connection::connect(&rabbitmq_url, ConnectionProperties::default()).await?;
     let channel = connection.create_channel().await?;
     channel

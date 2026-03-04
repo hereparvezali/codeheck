@@ -15,12 +15,12 @@ pub fn ext(language: &str) -> &str {
 pub fn image(language: &str) -> &str {
     match language.to_lowercase().as_str() {
         "cpp" | "c++" => "gcc-rebuilt:latest",
-        "python" | "py" => "python:alpine",
+        "python" | "py" => "python-rebuilt:latest",
         "java" => "openjdk-rebuilt:latest",
-        "rust" | "rs" => "rust:alpine",
-        "go" => "golang:alpine",
-        "javascript" | "js" => "node:alpine",
-        _ => "node:alpine",
+        "rust" | "rs" => "rust-rebuilt:latest",
+        "go" => "golang-rebuilt:latest",
+        "javascript" | "js" => "node-rebuilt:latest",
+        _ => "node-rebuilt:latest",
     }
 }
 

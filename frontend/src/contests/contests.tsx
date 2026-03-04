@@ -93,16 +93,23 @@ export default function Contests() {
                 }
             })
             .catch((err) => {
-                alert(err.toString());
+                console.error(err.toString());
+            })
+            .finally(() => {
+                fetchContests(cursors[cursors.length - 1]);
             });
     };
     const handleUnRegister = (registration_id?: number) => {
         if (!registration_id) return;
         authfetch(`/contest/registration?registration_id=${registration_id}`, {
             method: "DELETE",
-        }).then(async (res) => {
-            console.log(res.statusText);
-        });
+        })
+            .then(async (res) => {
+                console.log(res.statusText);
+            })
+            .finally(() => {
+                fetchContests(cursors[cursors.length - 1]);
+            });
     };
     return (
         <div className="max-w-6xl mx-auto p-4">

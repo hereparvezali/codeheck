@@ -1,32 +1,30 @@
 use crate::{error::AppError, routes, utils::app_state::AppState};
-use axum::{Router, routing::get};
+use axum::{Router, http::StatusCode, routing::get};
 use std::time::Duration;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
-use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
+use tower_http::{cors::CorsLayer, timeout::TimeoutLayer};
 
 pub async fn app() -> Result<Router, AppError> {
-    tracing::info!("Initializing application state");
     let state = AppState::new().await?;
 
-    tracing::info!("Setting up API routes");
     let api_routes = routes::api_routes(&state);
 
-    tracing::info!("Configuring middleware layers");
     let app = Router::new()
         .nest("/api", api_routes)
         .route("/health", get(health_check))
         .fallback(fallback_response)
         .layer(
             ServiceBuilder::new()
-                .layer(TraceLayer::new_for_http())
                 .layer(CorsLayer::very_permissive())
                 .layer(CookieManagerLayer::new())
-                .layer(TimeoutLayer::new(Duration::from_secs(5))),
+                .layer(TimeoutLayer::with_status_code(
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    Duration::from_secs(5),
+                )),
         )
         .with_state(state);
 
-    tracing::info!("Application setup complete");
     Ok(app)
 }
 

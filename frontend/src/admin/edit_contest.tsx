@@ -58,10 +58,14 @@ const EditContest = () => {
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<"details" | "problems">("details");
+    const [activeTab, setActiveTab] = useState<"details" | "problems">(
+        "details",
+    );
 
     // For managing problems
-    const [contestProblems, setContestProblems] = useState<ContestProblem[]>([]);
+    const [contestProblems, setContestProblems] = useState<ContestProblem[]>(
+        [],
+    );
     const [availableProblems, setAvailableProblems] = useState<Problem[]>([]);
     const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
@@ -135,7 +139,9 @@ const EditContest = () => {
             setAvailableProblems(data.problems || []);
         } catch (e) {
             console.error("Failed to fetch problems:", e);
-            setError(e instanceof Error ? e.message : "Failed to load problems");
+            setError(
+                e instanceof Error ? e.message : "Failed to load problems",
+            );
         } finally {
             setLoadingProblems(false);
         }
@@ -164,11 +170,13 @@ const EditContest = () => {
 
         const payload = {
             ...form,
-            start_time: form.start_time ? toUtcString(form.start_time) : undefined,
+            start_time: form.start_time
+                ? toUtcString(form.start_time)
+                : undefined,
             end_time: form.end_time ? toUtcString(form.end_time) : undefined,
         };
 
-        authfetch(`/contest/${contestId}`, {
+        authfetch(`/contest?contest_id=${contestId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -188,7 +196,7 @@ const EditContest = () => {
                 return res.json();
             })
             .then((data: ContestResponse) => {
-                navigator(`/contests/${data.slug}`);
+                navigator(`/contests/${data.id}`);
             })
             .catch((e) => {
                 setError(e.message ?? "Something went wrong");
@@ -212,22 +220,23 @@ const EditContest = () => {
 
         setLoading(true);
         setError(null);
-
-        const problems: ProblemIdAndLabel[] = selectedProblemIds.map((id) => ({
-            problem_id: id,
-            label: undefined,
-        }));
-
+        let counter: number = contestProblems.length;
+        const problems: ProblemIdAndLabel[] = selectedProblemIds.map((id) => {
+            const label = String.fromCharCode(counter + 65);
+            counter += 1;
+            return { problem_id: id, label: label };
+        });
+        const payload: { id: number; problems: ProblemIdAndLabel[] } = {
+            id: contestId,
+            problems: problems,
+        };
         try {
-            const res = await authfetch("/contest/add_problem", {
+            const res = await authfetch("/contest/problems", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    contest_id: contestId,
-                    problems: problems,
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
@@ -240,7 +249,9 @@ const EditContest = () => {
             }
 
             // Refresh contest problems
-            const problemsRes = await authfetch(`/contest/${contestId}/problems`);
+            const problemsRes = await authfetch(
+                `/contest/problems?id=${contestId}`,
+            );
             if (problemsRes.ok) {
                 const updatedProblems = await problemsRes.json();
                 setContestProblems(updatedProblems || []);
@@ -261,9 +272,12 @@ const EditContest = () => {
 
         setLoading(true);
         try {
-            const res = await authfetch(`/contest/problem/${contestProblemId}`, {
-                method: "DELETE",
-            });
+            const res = await authfetch(
+                `/contest/problems?problem_id=${contestProblemId}&contest_id=${contestId}`,
+                {
+                    method: "DELETE",
+                },
+            );
 
             if (!res.ok) {
                 if (res.status === 401) {
@@ -274,9 +288,13 @@ const EditContest = () => {
             }
 
             // Remove from local state
-            setContestProblems((prev) => prev.filter((p) => p.id !== contestProblemId));
+            setContestProblems((prev) =>
+                prev.filter((p) => p.id !== contestProblemId),
+            );
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Failed to remove problem");
+            setError(
+                e instanceof Error ? e.message : "Failed to remove problem",
+            );
             console.error(e);
         } finally {
             setLoading(false);
@@ -297,7 +315,9 @@ const EditContest = () => {
     return (
         <div className="max-w-4xl mx-auto mt-10 p-6 border rounded-lg shadow-md">
             <h2 className="text-3xl font-bold mb-2">Edit Contest</h2>
-            <p className="text-gray-600 mb-6">Update contest details and manage problems</p>
+            <p className="text-gray-600 mb-6">
+                Update contest details and manage problems
+            </p>
 
             {error && (
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -336,7 +356,9 @@ const EditContest = () => {
             {activeTab === "details" && (
                 <form onSubmit={handleContestSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-2">Title *</label>
+                        <label className="block text-sm font-medium mb-2">
+                            Title *
+                        </label>
                         <input
                             type="text"
                             name="title"
@@ -348,7 +370,9 @@ const EditContest = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Slug *</label>
+                        <label className="block text-sm font-medium mb-2">
+                            Slug *
+                        </label>
                         <input
                             type="text"
                             name="slug"
@@ -409,7 +433,10 @@ const EditContest = () => {
                             onChange={handleChange}
                             className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
                         />
-                        <label htmlFor="is_public" className="text-sm font-medium">
+                        <label
+                            htmlFor="is_public"
+                            className="text-sm font-medium"
+                        >
                             Public Contest
                         </label>
                     </div>
@@ -438,7 +465,9 @@ const EditContest = () => {
                 <div className="space-y-6">
                     {/* Current Problems */}
                     <div>
-                        <h3 className="text-xl font-bold mb-3">Current Problems</h3>
+                        <h3 className="text-xl font-bold mb-3">
+                            Current Problems
+                        </h3>
                         {contestProblems.length === 0 ? (
                             <p className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                                 No problems added to this contest yet
@@ -452,15 +481,21 @@ const EditContest = () => {
                                     >
                                         <div>
                                             <p className="font-medium">
-                                                {cp.problem?.title || "Unknown Problem"}
+                                                {cp.problem?.title ||
+                                                    "Unknown Problem"}
                                             </p>
                                             <p className="text-sm text-gray-500">
-                                                {cp.problem?.slug} • {cp.problem?.difficulty || "N/A"}
-                                                {cp.label && ` • Label: ${cp.label}`}
+                                                {cp.problem?.slug} •{" "}
+                                                {cp.problem?.difficulty ||
+                                                    "N/A"}
+                                                {cp.label &&
+                                                    ` • Label: ${cp.label}`}
                                             </p>
                                         </div>
                                         <button
-                                            onClick={() => handleRemoveProblem(cp.id)}
+                                            onClick={() =>
+                                                handleRemoveProblem(cp.id)
+                                            }
                                             disabled={loading}
                                             className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50"
                                         >
@@ -474,18 +509,29 @@ const EditContest = () => {
 
                     {/* Add New Problems */}
                     <div>
-                        <h3 className="text-xl font-bold mb-3">Add More Problems</h3>
+                        <h3 className="text-xl font-bold mb-3">
+                            Add More Problems
+                        </h3>
                         {loadingProblems ? (
-                            <p className="text-center py-4">Loading problems...</p>
+                            <p className="text-center py-4">
+                                Loading problems...
+                            </p>
                         ) : availableProblems.length === 0 ? (
                             <p className="text-center py-4 text-gray-500">
-                                No problems available. Create some problems first.
+                                No problems available. Create some problems
+                                first.
                             </p>
                         ) : (
                             <>
                                 <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
                                     {availableProblems
-                                        .filter(p => !contestProblems.some(cp => cp.problem_id === p.id))
+                                        .filter(
+                                            (p) =>
+                                                !contestProblems.some(
+                                                    (cp) =>
+                                                        cp.problem_id === p.id,
+                                                ),
+                                        )
                                         .map((problem) => (
                                             <div
                                                 key={problem.id}
@@ -493,14 +539,24 @@ const EditContest = () => {
                                             >
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedProblemIds.includes(problem.id)}
-                                                    onChange={() => handleProblemToggle(problem.id)}
+                                                    checked={selectedProblemIds.includes(
+                                                        problem.id,
+                                                    )}
+                                                    onChange={() =>
+                                                        handleProblemToggle(
+                                                            problem.id,
+                                                        )
+                                                    }
                                                     className="w-4 h-4"
                                                 />
                                                 <div className="flex-1">
-                                                    <p className="font-medium">{problem.title}</p>
+                                                    <p className="font-medium">
+                                                        {problem.title}
+                                                    </p>
                                                     <p className="text-sm text-gray-500">
-                                                        {problem.slug} • {problem.difficulty || "N/A"}
+                                                        {problem.slug} •{" "}
+                                                        {problem.difficulty ||
+                                                            "N/A"}
                                                     </p>
                                                 </div>
                                                 <span
@@ -510,7 +566,9 @@ const EditContest = () => {
                                                             : "bg-gray-100 text-gray-800"
                                                     }`}
                                                 >
-                                                    {problem.is_public ? "Public" : "Private"}
+                                                    {problem.is_public
+                                                        ? "Public"
+                                                        : "Private"}
                                                 </span>
                                             </div>
                                         ))}
@@ -518,7 +576,10 @@ const EditContest = () => {
 
                                 <button
                                     onClick={handleAddProblems}
-                                    disabled={loading || selectedProblemIds.length === 0}
+                                    disabled={
+                                        loading ||
+                                        selectedProblemIds.length === 0
+                                    }
                                     className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {loading

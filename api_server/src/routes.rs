@@ -1,5 +1,6 @@
+use crate::utils::authenticator::authorizer;
 use crate::{contest, problem, submission, user, utils::app_state::AppState};
-use axum::Router;
+use axum::{Router, middleware};
 
 /// Creates and returns all API routes
 pub fn api_routes(state: &AppState) -> Router<AppState> {
@@ -10,9 +11,6 @@ pub fn api_routes(state: &AppState) -> Router<AppState> {
 
 /// Protected routes that require authentication
 fn protected_routes(state: &AppState) -> Router<AppState> {
-    use crate::utils::authenticator::authorizer;
-    use axum::middleware;
-
     Router::new()
         .merge(submission::router())
         .merge(contest::router())

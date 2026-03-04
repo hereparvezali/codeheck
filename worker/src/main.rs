@@ -13,24 +13,19 @@ use tokio::{
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
-    tracing::info!("Building images started");
-
     // Build Docker images
     if let Err(e) = docker::build_images().await {
-        tracing::error!("Failed to build Docker images: {}", e);
+        println!("Failed to build Docker images: {:?}", e);
     }
 
-    tracing::info!("Connecting to the message queue");
     // Setup RabbitMQ
     let (api, _, mut consumer) = match queue::setup_rabbitmq().await {
         Ok(result) => result,
         Err(e) => {
-            tracing::error!("Failed to setup RabbitMQ: {}", e);
+            println!("Failed to setup RabbitMQ: {:?}", e);
             return;
         }
     };
-    tracing::info!("Connection successful to the message queue");
 
     // Ensure /tmp/codebox exists
     if !fs::try_exists("/tmp/codebox").await.unwrap() {
@@ -59,7 +54,7 @@ async fn main() {
         tokio::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
             if let Err(e) = handle(delivery, api, core_id).await {
-                tracing::error!("Error handling delivery: {}", e);
+                println!("Error handling delivery: {:?}", e);
             }
         });
     }

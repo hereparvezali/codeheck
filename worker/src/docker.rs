@@ -7,19 +7,27 @@ use tokio::{fs, process::Command};
 
 /// Builds all Docker images defined in the worker directory.
 pub async fn build_images() -> anyhow::Result<(), anyhow::Error> {
-    let mut dir = tokio::fs::read_dir(".").await?;
+    let mut dir = tokio::fs::read_dir("./src/compilers").await?;
     while let Some(entry) = dir.next_entry().await? {
         let path = entry.path();
-        let name = path.file_name().unwrap();
-        if name.to_string_lossy().starts_with("Dockerfile") {
-            let tag = name.to_string_lossy();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        if name.starts_with("Dockerfile") {
+            let tag = name.split('.').nth(1).unwrap();
+            let output = Command::new("docker").arg("images").output().await?;
+
+            let got_tag = String::from_utf8_lossy(&output.stdout).contains(tag);
+            if got_tag {
+                continue;
+            }
             let child = Command::new("docker")
                 .args([
+                    "buildx",
                     "build",
+                    "--load",
                     "-f",
-                    &format!("{}", path.display()),
+                    &path.display().to_string(),
                     "-t",
-                    tag.split('.').nth(1).unwrap(),
+                    tag,
                     ".",
                 ])
                 .stdin(std::process::Stdio::piped())
@@ -37,6 +45,7 @@ pub async fn build_images() -> anyhow::Result<(), anyhow::Error> {
             }
         }
     }
+    println!("Compiler images are built");
     Ok(())
 }
 

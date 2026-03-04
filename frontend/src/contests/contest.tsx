@@ -49,7 +49,7 @@ const ContestDetail = () => {
 
     // Fetch contest
     useEffect(() => {
-        if (!id) return;
+        if (!id || !user) return;
 
         setLoading(true);
         authfetch(`/contest?id=${id}&user_id=${user?.id}`)

@@ -18,16 +18,7 @@ pub struct RetrieveContestInfoQuery {
     pub slug: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AddContestProblemsPayload {
-    pub contest_id: i64,
-    pub problems: Vec<ProblemIdAndLabel>,
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProblemIdAndLabel {
-    pub problem_id: i64,
-    pub label: Option<String>,
-}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RetrieveContestSubmissionsQuery {
@@ -75,8 +66,25 @@ pub struct RetrieveContestProblemsResponse {
     pub difficulty: Option<String>,
     pub label: Option<String>,
 }
-
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddContestProblemsPayload {
+    pub id: i64,
+    pub problems: Vec<ProblemIdAndLabel>,
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProblemIdAndLabel {
+    pub problem_id: i64,
+    pub label: Option<String>,
+}
 #[derive(Debug, Serialize, Deserialize, FromQueryResult)]
 pub struct ProblemId {
     pub id: i64,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct DeleteProblemQueryParams {
+    pub contest_id: i64,
+    pub problem_id: i64,
+}
+#[derive(Debug, Deserialize, FromQueryResult)]
+pub struct NoValue{}

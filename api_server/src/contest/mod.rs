@@ -1,6 +1,7 @@
-pub mod add_contest_problem;
+pub mod add_contest_problems;
 pub mod create_contest;
 pub mod create_registration;
+pub mod delete_contest_problems;
 pub mod delete_registration;
 pub mod dto;
 pub mod retrieve_contest;
@@ -21,10 +22,11 @@ pub fn router() -> Router<AppState> {
             post(create_registration::create).delete(delete_registration::delete),
         )
         .route("/contests", get(retrieve_contests::retrieve))
-        .route("/contest/add_problem", get(add_contest_problem::add))
         .route(
             "/contest/problems",
-            get(retrieve_contest_problems::retrieve),
+            get(retrieve_contest_problems::retrieve)
+                .post(add_contest_problems::add)
+                .delete(delete_contest_problems::delete),
         )
         .route(
             "/contest",

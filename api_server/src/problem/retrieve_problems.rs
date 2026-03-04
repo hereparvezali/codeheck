@@ -19,6 +19,19 @@ use sea_orm::{
 };
 use std::sync::Arc;
 
+// pub struct RetrieveProblemsQueryWithCursor {
+//     pub cursor: Option<i64>,
+//     pub limit: Option<u64>,
+//     pub offset: Option<u64>,
+
+//     pub id: Option<i64>,
+//     pub slug: Option<String>,
+//     pub difficulty: Option<String>,
+//     pub author_id: Option<i64>,
+//     pub user_id: Option<i64>,
+//     pub status: Option<String>,
+// }
+
 #[debug_handler]
 pub async fn retrieve(
     State(stt): State<AppState>,

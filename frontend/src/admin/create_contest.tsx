@@ -209,13 +209,13 @@ const CreateContest = () => {
         );
 
         try {
-            const res = await authfetch("/contest/add_problem", {
+            const res = await authfetch("/contest/problems", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    contest_id: createdContest.id,
+                    id: createdContest.id,
                     problems: problems,
                 }),
             });
@@ -241,7 +241,7 @@ const CreateContest = () => {
 
     const handleSkipProblems = () => {
         if (createdContest) {
-            navigator(`/contests/${createdContest.slug}`);
+            navigator(`/contests/${createdContest.id}`);
         }
     };
 
@@ -569,7 +569,7 @@ function toUtcString(datetimeLocal: string): string {
     const day = String(date.getUTCDate()).padStart(2, "0");
     const hours = String(date.getUTCHours()).padStart(2, "0");
     const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-
+    console.log(`${year}-${month}-${day}T${hours}:${minutes}:00`);
     return `${year}-${month}-${day}T${hours}:${minutes}:00`;
 }
 
@@ -579,9 +579,9 @@ function calculateDuration(start: string, end: string): string {
     const diffMs = endDate.getTime() - startDate.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (diffHours < 0 || diffMinutes < 0) return "Invalid duration";
-    
+
     if (diffHours === 0) {
         return `${diffMinutes} minutes`;
     } else if (diffMinutes === 0) {

@@ -244,9 +244,9 @@ const Problem = () => {
                     <button
                         onClick={handleSubmit}
                         className={`${loaded_sub?.status == "pending" ? "bg-gray-500" : "bg-blue-500"} text-white px-3 py-1 rounded`}
-                        disabled={
-                            loaded_sub?.status == "pending" ? true : false
-                        }
+                        // disabled={
+                        //     loaded_sub?.status == "pending" ? true : false
+                        // }
                     >
                         Submit
                     </button>
