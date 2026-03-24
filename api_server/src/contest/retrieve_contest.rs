@@ -8,7 +8,7 @@ use axum::{
     Extension, Json, debug_handler,
     extract::{Query, State},
 };
-use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, Condition, EntityTrait, ExprTrait, QueryFilter};
 use std::sync::Arc;
 
 #[debug_handler]

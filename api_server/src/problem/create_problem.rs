@@ -38,6 +38,7 @@ pub async fn create(
             memory_limit: Set(problem_payload.memory_limit),
             difficulty: Set(problem_payload.difficulty),
             author_id: Set(Some(claim.id)),
+            is_public: Set(problem_payload.is_public.unwrap_or(false)),
             ..Default::default()
         }
         .insert(state.db.as_ref())

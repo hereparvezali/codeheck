@@ -9,7 +9,7 @@ use crate::{
 };
 use axum::{Json, extract::State};
 use jsonwebtoken::{EncodingKey, Header, encode};
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, EntityTrait, ExprTrait, QueryFilter};
 use tower_cookies::{Cookie, Cookies};
 
 pub async fn signin(

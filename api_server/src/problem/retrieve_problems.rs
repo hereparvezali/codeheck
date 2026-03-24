@@ -14,8 +14,8 @@ use sea_orm::prelude::Expr;
 use sea_orm::sea_query::{CaseStatement, SimpleExpr, SubQueryStatement};
 // use sea_orm::sea_query::{CaseStatement, ExprTrait};
 use sea_orm::{
-    ColumnTrait, Condition, EntityTrait, Order, QueryFilter, QueryOrder, QuerySelect, QueryTrait,
-    sea_query,
+    ColumnTrait, Condition, EntityTrait, ExprTrait, Order, QueryFilter, QueryOrder, QuerySelect,
+    QueryTrait, sea_query,
 };
 use std::sync::Arc;
 
@@ -56,8 +56,6 @@ pub async fn retrieve(
                             }
                         }),
                 )
-                .add_option(query.id.map(|id| problems::Column::Id.eq(id)))
-                .add_option(query.slug.map(|slug| problems::Column::Slug.eq(slug)))
                 .add_option(
                     query
                         .difficulty

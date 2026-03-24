@@ -48,7 +48,7 @@ impl AppState {
 
         channel
             .queue_declare(
-                &config.rabbitmq.queue_name,
+                config.rabbitmq.queue_name.clone().into(),
                 QueueDeclareOptions::default(),
                 FieldTable::default(),
             )

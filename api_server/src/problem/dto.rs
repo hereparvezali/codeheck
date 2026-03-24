@@ -19,22 +19,25 @@ pub struct CreateProblemPayload {
     pub time_limit: i16,
     pub memory_limit: i16,
     pub difficulty: Option<String>,
+    pub is_public: Option<bool>,
 }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UpdateProblemPayload {
+    pub id: i64,
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Case {
-    pub input: Option<String>,
-    pub output: Option<String>,
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTestcasePayload {
-    pub problem_id: i64,
-    pub cases: Vec<Case>,
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UpdateProblemIsPublicQuery {
-    pub problem_id: i64,
-    pub is_public: bool,
+    pub title: Option<String>,
+    pub slug: Option<String>,
+    pub statement: Option<String>,
+    pub input_spec: Option<String>,
+    pub output_spec: Option<String>,
+    pub sample_inputs: Option<String>,
+    pub sample_outputs: Option<String>,
+    pub time_limit: Option<i16>,
+    pub memory_limit: Option<i16>,
+    pub difficulty: Option<String>,
+    pub is_public: Option<bool>,
+    pub created_at: Option<NaiveDateTime>,
+    pub author_id: Option<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,8 +46,6 @@ pub struct RetrieveProblemsQueryWithCursor {
     pub limit: Option<u64>,
     pub offset: Option<u64>,
 
-    pub id: Option<i64>,
-    pub slug: Option<String>,
     pub difficulty: Option<String>,
     pub author_id: Option<i64>,
     pub user_id: Option<i64>,

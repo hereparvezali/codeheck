@@ -5,7 +5,9 @@ use crate::{
     utils::{app_state::AppState, security::hash_password},
 };
 use axum::{Json, extract::State};
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ExprTrait, QueryFilter,
+};
 
 pub async fn signup(
     State(state): State<AppState>,

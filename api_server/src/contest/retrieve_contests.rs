@@ -10,7 +10,7 @@ use axum::{
     extract::{Query, State},
 };
 use sea_orm::{
-    ColumnTrait, Condition, EntityTrait, JoinType, QueryFilter, QueryOrder, QuerySelect,
+    ColumnTrait, Condition, EntityTrait, ExprTrait, JoinType, QueryFilter, QueryOrder, QuerySelect,
     RelationTrait,
 };
 use std::sync::Arc;

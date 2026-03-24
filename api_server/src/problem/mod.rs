@@ -1,9 +1,9 @@
 pub mod create_problem;
-pub mod create_testcases;
 pub mod dto;
 pub mod retrieve_problem;
 pub mod retrieve_problems;
-pub mod update_ispublic;
+pub mod testcases;
+pub mod update_problem;
 
 use crate::utils::app_state::AppState;
 use axum::{
@@ -18,5 +18,5 @@ pub fn router() -> Router<AppState> {
             get(retrieve_problem::retrieve).post(create_problem::create),
         )
         .route("/problems", get(retrieve_problems::retrieve))
-        .route("/problem/testcases", post(create_testcases::create))
+        .route("/problem/testcases", post(testcases::create))
 }

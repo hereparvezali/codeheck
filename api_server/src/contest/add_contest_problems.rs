@@ -1,8 +1,13 @@
 use crate::{
-    contest::dto::{AddContestProblemsPayload, ProblemId}, entity::{contest_problems, problems}, error::AppError, utils::{app_state::AppState, security::Claim}
+    contest::dto::{AddContestProblemsPayload, ProblemId},
+    entity::{contest_problems, problems},
+    error::AppError,
+    utils::{app_state::AppState, security::Claim},
 };
 use axum::{Extension, Json, debug_handler, extract::State};
-use sea_orm::{ActiveValue::Set, ColumnTrait, Condition, EntityTrait, QueryFilter, QuerySelect};
+use sea_orm::{
+    ActiveValue::Set, ColumnTrait, Condition, EntityTrait, ExprTrait, QueryFilter, QuerySelect,
+};
 use std::sync::Arc;
 
 #[debug_handler]

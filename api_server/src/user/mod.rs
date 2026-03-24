@@ -19,7 +19,7 @@ pub fn router() -> Router<AppState> {
 
 pub fn public_router() -> Router<AppState> {
     Router::new()
-        .route("/user/signin", post(signin::signin))
+        .route("/user/signin", get(signin::signin))
         .route("/user/signup", post(signup::signup))
         .route("/user/signout", get(signout::signout))
         .route("/user/refresh", get(refresh::refresh))

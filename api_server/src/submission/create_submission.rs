@@ -67,8 +67,8 @@ pub async fn create(
 
     stt.mq
         .basic_publish(
-            "",
-            "submissions",
+            "".into(),
+            "submissions".into(),
             BasicPublishOptions::default(),
             &payload,
             BasicProperties::default(),
