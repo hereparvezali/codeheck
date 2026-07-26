@@ -27,7 +27,7 @@ pub async fn setup_rabbitmq() -> Result<(Arc<String>, Channel, Consumer)> {
     let channel = connection.create_channel().await?;
     channel
         .queue_declare(
-            "submissions",
+            "submissions".into(),
             QueueDeclareOptions::default(),
             FieldTable::default(),
         )
@@ -35,8 +35,8 @@ pub async fn setup_rabbitmq() -> Result<(Arc<String>, Channel, Consumer)> {
 
     let consumer = channel
         .basic_consume(
-            "submissions",
-            &hostname,
+            "submissions".into(),
+            hostname.clone().into(),
             BasicConsumeOptions::default(),
             FieldTable::default(),
         )

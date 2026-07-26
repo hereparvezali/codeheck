@@ -1,0 +1,29 @@
+
+version: "3.9"
+
+services:
+  codeheck_db:
+    image: postgres:alpine
+    container_name: codeheck_db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: parvez
+      POSTGRES_PASSWORD: mypass
+      POSTGRES_DB: codeheck_db
+    volumes:
+      - codeheck_db_data:/var/lib/postgresql/data
+
+  codeheck_mq:
+    image: rabbitmq:alpine
+    container_name: codeheck_mq
+    restart: always
+    ports:
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: parvez
+      RABBITMQ_DEFAULT_PASS: mypass
+
+volumes:
+  codeheck_db_data:
