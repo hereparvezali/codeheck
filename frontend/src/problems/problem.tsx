@@ -223,22 +223,22 @@ export default function Problem() {
                     const data = JSON.parse(event.data);
                     applyUpdate(data);
                 } catch {
-
+                    // ignore
                 }
             };
             ws.onerror = () => {
-                if (!pollTimer) pollTimer = setInterval(pollOnce, 1500);
+                if (!pollTimer && currentSub?.status.toUpperCase() === "PENDING") {
+                    pollTimer = setInterval(pollOnce, 2000);
+                }
             };
             ws.onclose = () => {
                 if (isMounted && currentSub?.status.toUpperCase() === "PENDING" && !pollTimer) {
-                    pollTimer = setInterval(pollOnce, 1500);
+                    pollTimer = setInterval(pollOnce, 2000);
                 }
             };
         } catch {
-            pollTimer = setInterval(pollOnce, 1500);
+            pollTimer = setInterval(pollOnce, 2000);
         }
-
-        pollTimer = setInterval(pollOnce, 2000);
 
         return () => {
             isMounted = false;

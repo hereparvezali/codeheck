@@ -112,11 +112,15 @@ export default function ContestDetail() {
 
     useEffect(() => {
         fetchContest();
-    }, [id, user]);
+    }, [id, user?.id]);
 
     useEffect(() => {
         if (!contest) return;
         fetchProblems(contest.id);
+    }, [contest?.id, contest?.registration_id]);
+
+    useEffect(() => {
+        if (!contest || activeTab !== "leaderboard") return;
         fetchLeaderboard(contest.id);
 
         const baseUrl = import.meta.env.VITE_BASE || "http://localhost:8000/api";
@@ -124,7 +128,6 @@ export default function ContestDetail() {
         const wsUrl = baseUrl.replace(/^http/, "ws") + `/contest/leaderboard/ws?contest_id=${contest.id}${tokenParam}`;
 
         let ws: WebSocket | null = null;
-        let pollTimer: ReturnType<typeof setInterval> | null = null;
 
         try {
             ws = new WebSocket(wsUrl);
@@ -135,28 +138,18 @@ export default function ContestDetail() {
                         setLeaderboard(data.standings);
                     }
                 } catch {
-
-                }
-            };
-            ws.onerror = () => {
-                if (!pollTimer) {
-                    pollTimer = setInterval(() => fetchLeaderboard(contest.id), 8000);
-                }
-            };
-            ws.onclose = () => {
-                if (!pollTimer) {
-                    pollTimer = setInterval(() => fetchLeaderboard(contest.id), 8000);
+                    // ignore
                 }
             };
         } catch {
-            pollTimer = setInterval(() => fetchLeaderboard(contest.id), 8000);
+            // ignore
         }
 
         return () => {
             if (ws) ws.close();
-            if (pollTimer) clearInterval(pollTimer);
         };
-    }, [contest?.id, contest?.registration_id, timeLeft.status, user?.access_token]);
+    }, [contest?.id, activeTab, user?.access_token]);
+
 
     useEffect(() => {
         if (!contest) return;
