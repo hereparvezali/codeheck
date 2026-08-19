@@ -28,7 +28,8 @@ pub struct DatabaseConfig {
 #[derive(Debug, Clone, Deserialize)]
 pub struct RabbitMqConfig {
     pub url: String,
-    pub queue_name: String,
+    pub outgoing: String,
+    pub incomming: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -73,8 +74,8 @@ impl Config {
             },
             rabbitmq: RabbitMqConfig {
                 url: env::var("RABBITMQ_URL").map_err(|_| "RABBITMQ_URL must be set")?,
-                queue_name: env::var("RABBITMQ_QUEUE")
-                    .unwrap_or_else(|_| "submissions".to_string()),
+                outgoing: env::var("OUTGOING_QUEUE").unwrap_or_else(|_| "outgoing".to_string()),
+                incomming: env::var("INCOMMING_QUEUE").unwrap_or_else(|_| "incomming".to_string()),
             },
             jwt: JwtConfig {
                 secret: env::var("SECRET").map_err(|_| "SECRET must be set")?,

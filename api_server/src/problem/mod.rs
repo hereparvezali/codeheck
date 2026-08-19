@@ -1,22 +1,27 @@
-pub mod create_problem;
 pub mod dto;
-pub mod retrieve_problem;
-pub mod retrieve_problems;
-pub mod testcases;
-pub mod update_problem;
+pub mod handlers;
+pub mod service;
 
 use crate::utils::app_state::AppState;
 use axum::{
     Router,
-    routing::{get, post},
+    routing::get,
 };
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route(
             "/problem",
-            get(retrieve_problem::retrieve).post(create_problem::create),
+            get(handlers::retrieve)
+                .post(handlers::create)
+                .put(handlers::update)
+                .delete(handlers::delete),
         )
-        .route("/problems", get(retrieve_problems::retrieve))
-        .route("/problem/testcases", post(testcases::create))
+        .route("/problems", get(handlers::retrieve_many))
+        .route(
+            "/problem/testcases",
+            get(handlers::retrieve_testcases)
+                .post(handlers::create_testcases)
+                .delete(handlers::delete_testcases),
+        )
 }

@@ -1,10 +1,6 @@
 pub mod dto;
-pub mod refresh;
-pub mod retrieve_user;
-pub mod retrieve_user_info;
-pub mod signin;
-pub mod signout;
-pub mod signup;
+pub mod handlers;
+pub mod service;
 
 use crate::utils::app_state::AppState;
 use axum::{
@@ -12,15 +8,13 @@ use axum::{
     routing::{get, post},
 };
 
-/// Returns the protected user routes (requires authentication)
 pub fn router() -> Router<AppState> {
-    Router::new().route("/user", get(retrieve_user::retrieve))
-}
-
-pub fn public_router() -> Router<AppState> {
     Router::new()
-        .route("/user/signin", get(signin::signin))
-        .route("/user/signup", post(signup::signup))
-        .route("/user/signout", get(signout::signout))
-        .route("/user/refresh", get(refresh::refresh))
+        .route("/user/signup", post(handlers::signup))
+        .route("/user/signin", post(handlers::signin))
+        .route("/user/signout", post(handlers::signout))
+        .route("/user/refresh", post(handlers::refresh))
+        .route("/user/info", get(handlers::retrieve_user_info))
+        .route("/user/stats", get(handlers::retrieve_stats))
+        .route("/user", get(handlers::retrieve_me))
 }

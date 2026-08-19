@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Represents a submission received from the queue.
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SubmissionPublishQueue {
     pub submission_id: i64,
@@ -13,14 +13,14 @@ pub struct SubmissionPublishQueue {
     pub token: String,
 }
 
-/// Represents an input-output pair for a test case.
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InputOutput {
     pub input: Option<String>,
     pub output: Option<String>,
 }
 
-/// Represents the response sent back to the API after processing a submission.
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResponseFromWorker {
     pub id: i64,
@@ -31,7 +31,7 @@ pub struct ResponseFromWorker {
 }
 
 impl ResponseFromWorker {
-    /// Creates a new ResponseFromWorker with default values.
+
     pub fn new(id: i64) -> Self {
         Self {
             id,

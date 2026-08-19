@@ -13,8 +13,8 @@ pub struct Model {
     pub slug: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
-    pub start_time: DateTime,
-    pub end_time: DateTime,
+    pub start_time: DateTimeWithTimeZone,
+    pub end_time: DateTimeWithTimeZone,
     pub is_public: bool,
     pub author_id: Option<i64>,
 }

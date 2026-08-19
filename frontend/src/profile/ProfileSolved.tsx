@@ -1,149 +1,119 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/contexts/authcontext";
 import { ViewProblems } from "../components/view_problems";
 import type { Problem } from "../problems/problems";
+import { Link } from "react-router-dom";
 
 interface SolvedProblemsResponse {
     cursor?: number;
     problems: Problem[];
-    count?: number;
 }
 
 interface ProfileSolvedProps {
-    onCountUpdate?: (count: number) => void;
+    userId: number;
 }
 
-const ProfileSolved = ({ onCountUpdate }: ProfileSolvedProps) => {
-    const navigator = useNavigate();
-    const { authfetch, user } = useAuth();
+export default function ProfileSolved({ userId }: ProfileSolvedProps) {
+    const { authfetch } = useAuth();
 
     const [solvedProblems, setSolvedProblems] = useState<Problem[]>([]);
-    const [solvedLoading, setSolvedLoading] = useState(false);
-    const [solvedCount, setSolvedCount] = useState(0);
-    const [solvedCursor, setSolvedCursor] = useState<number | undefined>(undefined);
-    const [solvedPage, setSolvedPage] = useState(1);
-    const [solvedCursors, setSolvedCursors] = useState<(number | undefined)[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [cursor, setCursor] = useState<number | undefined>(undefined);
+    const [page, setPage] = useState(1);
+    const [cursors, setCursors] = useState<(number | undefined)[]>([]);
 
-    useEffect(() => {
-        if (solvedProblems.length === 0) {
-            fetchSolvedProblems();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const fetchSolvedProblems = async (cursor?: number) => {
-        if (!user) return;
-
-        setSolvedLoading(true);
+    const fetchSolvedProblems = async (c?: number) => {
+        setLoading(true);
         try {
-            const params = new URLSearchParams({ limit: "20" });
-            if (cursor) params.append("cursor", cursor.toString());
+            const params = new URLSearchParams({ limit: "15", user_id: userId.toString(), status: "AC" });
+            if (c) params.append("cursor", c.toString());
 
-            const res = await authfetch(
-                `/problems?user_id=${user.id}&status=AC&${params.toString()}`,
-            );
-
-            if (!res.ok) {
-                if (res.status === 401) navigator("/signin");
-                throw new Error(await res.text());
-            }
-
-            const data: SolvedProblemsResponse = await res.json();
-            setSolvedProblems(data.problems || []);
-            setSolvedCursor(data.cursor);
-            if (data.count !== undefined) {
-                setSolvedCount(data.count);
-                if (onCountUpdate) {
-                    onCountUpdate(data.count);
-                }
+            const res = await authfetch(`/problems?${params.toString()}`);
+            if (res.ok) {
+                const data: SolvedProblemsResponse = await res.json();
+                setSolvedProblems(data.problems || []);
+                setCursor(data.cursor);
             }
         } catch (e) {
             console.error("Failed to fetch solved problems:", e);
         } finally {
-            setSolvedLoading(false);
+            setLoading(false);
         }
     };
 
-    const goNextSolved = () => {
-        if (!solvedCursor) return;
-        setSolvedPage((p) => p + 1);
-        setSolvedCursors((prev) => [...prev, solvedCursor]);
-        fetchSolvedProblems(solvedCursor);
+    useEffect(() => {
+        fetchSolvedProblems(undefined);
+
+    }, [userId]);
+
+    const goNext = () => {
+        if (!cursor) return;
+        setPage((p) => p + 1);
+        setCursors((prev) => [...prev, cursor]);
+        fetchSolvedProblems(cursor);
     };
 
-    const goPrevSolved = () => {
-        if (solvedCursors.length === 0) return;
-        const prevCursor = solvedCursors[solvedCursors.length - 2];
-        setSolvedPage((p) => p - 1);
+    const goPrev = () => {
+        if (cursors.length === 0) return;
+        const prevCursor = cursors[cursors.length - 2];
+        setPage((p) => p - 1);
         fetchSolvedProblems(prevCursor);
-        setSolvedCursors((prev) => prev.slice(0, -1));
+        setCursors((prev) => prev.slice(0, -1));
     };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Solved Problems</h2>
-                <div className="flex items-center gap-4">
-                    {solvedCount > 0 && (
-                        <span className="text-sm text-gray-600">
-                            Total: {solvedCount} problems
-                        </span>
-                    )}
-                    {solvedProblems.length > 0 && (
-                        <div className="flex gap-2">
-                            <button
-                                onClick={goPrevSolved}
-                                disabled={solvedPage === 1 || solvedLoading}
-                                className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                                ← Previous
-                            </button>
-                            <span className="px-3 py-1 text-gray-600 text-sm">
-                                Page {solvedPage}
-                            </span>
-                            <button
-                                onClick={goNextSolved}
-                                disabled={!solvedCursor || solvedLoading}
-                                className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                            >
-                                Next →
-                            </button>
-                        </div>
-                    )}
-                </div>
+        <div className="space-y-4">
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-sm font-bold text-white">Solved Problems</h3>
+                {solvedProblems.length > 0 && (
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={goPrev}
+                            disabled={page === 1 || loading}
+                            className="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-lg text-xs font-semibold disabled:opacity-40 transition"
+                        >
+                            &larr; Prev
+                        </button>
+                        <span className="text-xs text-zinc-500 font-mono">Page {page}</span>
+                        <button
+                            onClick={goNext}
+                            disabled={!cursor || loading}
+                            className="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-lg text-xs font-semibold disabled:opacity-40 transition"
+                        >
+                            Next &rarr;
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {solvedLoading ? (
-                <div className="text-center py-12">
-                    <div className="animate-spin text-4xl mb-4">⏳</div>
-                    <p className="text-gray-600">Loading solved problems...</p>
+            {loading ? (
+                <div className="py-16 text-center text-zinc-500 space-y-3">
+                    <div className="w-7 h-7 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs">Loading solved problems...</p>
                 </div>
             ) : solvedProblems.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg p-12 text-center">
-                    <p className="text-gray-500 text-lg mb-4">
-                        You haven't solved any problems yet
-                    </p>
-                    <button
-                        onClick={() => navigator("/problems")}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                <div className="p-12 text-center bg-zinc-950 border border-zinc-900 rounded-2xl">
+                    <p className="text-sm font-semibold text-zinc-300 mb-1">No solved problems yet</p>
+                    <p className="text-xs text-zinc-500 mb-4">Start practicing in the problemset to earn Accepted verdicts.</p>
+                    <Link
+                        to="/problems"
+                        className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold inline-block transition shadow-sm"
                     >
                         Start Solving
-                    </button>
+                    </Link>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden shadow-lg">
                     <ViewProblems
                         problems={solvedProblems}
                         id={true}
                         title={true}
                         slug={true}
+                        difficulty={true}
                         status={true}
                     />
                 </div>
             )}
         </div>
     );
-};
-
-export default ProfileSolved;
+}

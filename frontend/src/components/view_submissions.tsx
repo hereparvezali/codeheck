@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { getStatusColor } from "../utils/helpers";
+import { formatUtcToLocal, getStatusColor } from "../utils/helpers";
 
 export interface Submission {
     id: number;
@@ -44,33 +44,30 @@ export function ViewSubmissions({
     submitted_at = true,
     view_code = false,
 }: ViewSubmissionsProps) {
-    const navigator = useNavigate();
+    const navigate = useNavigate();
 
     return (
         <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-                <thead className="bg-gray-100 text-left">
+            <table className="w-full border-collapse text-left text-sm">
+                <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs tracking-wider border-b border-zinc-800">
                     <tr>
-                        {id && <th className="p-3">#</th>}
-                        {user_id && <th className="p-3">User</th>}
-                        {problem_id && <th className="p-3">Problem</th>}
-                        {contest_id && <th className="p-3">Contest</th>}
-                        {language && <th className="p-3">Language</th>}
-                        {status && <th className="p-3">Status</th>}
-                        {verdict && <th className="p-3">Verdict</th>}
-                        {time && <th className="p-3">Time (ms)</th>}
-                        {memory && <th className="p-3">Memory (KB)</th>}
-                        {submitted_at && <th className="p-3">Submitted At</th>}
-                        {view_code && <th className="p-3">Action</th>}
+                        {id && <th className="p-3.5">#</th>}
+                        {user_id && <th className="p-3.5">User</th>}
+                        {problem_id && <th className="p-3.5">Problem</th>}
+                        {contest_id && <th className="p-3.5">Contest</th>}
+                        {language && <th className="p-3.5">Language</th>}
+                        {status && <th className="p-3.5">Status</th>}
+                        {verdict && <th className="p-3.5">Verdict</th>}
+                        {time && <th className="p-3.5">Time</th>}
+                        {memory && <th className="p-3.5">Memory</th>}
+                        {submitted_at && <th className="p-3.5">Submitted At</th>}
+                        {view_code && <th className="p-3.5 text-right">Action</th>}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-zinc-900">
                     {submissions.length === 0 ? (
                         <tr>
-                            <td
-                                colSpan={11}
-                                className="text-center text-gray-500 py-4"
-                            >
+                            <td colSpan={11} className="text-center text-zinc-500 py-8">
                                 No submissions found.
                             </td>
                         </tr>
@@ -78,77 +75,71 @@ export function ViewSubmissions({
                         submissions.map((s) => (
                             <tr
                                 key={s.id}
-                                className="border-b hover:bg-gray-50 transition"
+                                className="hover:bg-zinc-900/40 transition-colors group cursor-pointer"
+                                onClick={() => navigate(`/submissions/${s.id}`)}
                             >
-                                {id && <td className="p-3">{s.id}</td>}
+                                {id && <td className="p-3.5 font-mono text-zinc-500 text-xs">#{s.id}</td>}
                                 {user_id && (
-                                    <td className="p-3 text-gray-700">
-                                        {s.user_id}
+                                    <td className="p-3.5 font-mono text-zinc-400 text-xs">
+                                        User #{s.user_id}
                                     </td>
                                 )}
                                 {problem_id && (
                                     <td
-                                        className="p-3 text-blue-600 cursor-pointer hover:underline"
-                                        onClick={() =>
-                                            navigator(
-                                                `/problems/${s.problem_id}`,
-                                            )
-                                        }
+                                        className="p-3.5 text-zinc-200 hover:text-white font-medium text-xs"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/problems/${s.problem_id}`);
+                                        }}
                                     >
-                                        {s.problem_id}
+                                        Problem #{s.problem_id}
                                     </td>
                                 )}
                                 {contest_id && (
-                                    <td className="p-3">
-                                        {s.contest_id ?? "-"}
+                                    <td className="p-3.5 text-zinc-500 text-xs">
+                                        {s.contest_id ? `Contest #${s.contest_id}` : "-"}
                                     </td>
                                 )}
                                 {language && (
-                                    <td className="p-3">{s.language}</td>
+                                    <td className="p-3.5 font-mono text-xs text-zinc-300 uppercase">
+                                        {s.language}
+                                    </td>
                                 )}
                                 {status && (
-                                    <td className="p-3">
-                                        <span
-                                            className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                                                s.status,
-                                            )}`}
-                                        >
+                                    <td className="p-3.5">
+                                        <span className={`px-2.5 py-0.5 rounded text-xs ${getStatusColor(s.status)}`}>
                                             {s.status}
                                         </span>
                                     </td>
                                 )}
                                 {verdict && (
-                                    <td className="p-3 text-gray-700">
+                                    <td className="p-3.5 text-zinc-400 text-xs max-w-xs truncate">
                                         {s.verdict ?? "-"}
                                     </td>
                                 )}
                                 {time && (
-                                    <td className="p-3">
-                                        {s.time ? `${s.time}` : "-"}
+                                    <td className="p-3.5 font-mono text-xs text-zinc-400">
+                                        {s.time !== undefined && s.time !== null ? `${s.time} ms` : "-"}
                                     </td>
                                 )}
                                 {memory && (
-                                    <td className="p-3">
-                                        {s.memory ? `${s.memory}` : "-"}
+                                    <td className="p-3.5 font-mono text-xs text-zinc-400">
+                                        {s.memory !== undefined && s.memory !== null ? `${s.memory} KB` : "-"}
                                     </td>
                                 )}
                                 {submitted_at && (
-                                    <td className="p-3 text-gray-500">
-                                        {new Date(
-                                            s.submitted_at,
-                                        ).toLocaleString()}
+                                    <td className="p-3.5 text-xs text-zinc-500">
+                                        {formatUtcToLocal(s.submitted_at)}
                                     </td>
                                 )}
                                 {view_code && (
-                                    <td className="p-3">
+                                    <td className="p-3.5 text-right">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                navigator(
-                                                    `/submissions/${s.id}`,
-                                                );
+                                                navigate(`/submissions/${s.id}`);
                                             }}
-                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                            className="px-3 py-1 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-lg transition"
                                         >
                                             View Code
                                         </button>

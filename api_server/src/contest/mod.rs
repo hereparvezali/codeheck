@@ -1,13 +1,6 @@
-pub mod add_contest_problems;
-pub mod create_contest;
-pub mod create_registration;
-pub mod delete_contest_problems;
-pub mod delete_registration;
 pub mod dto;
-pub mod retrieve_contest;
-pub mod retrieve_contest_problems;
-pub mod retrieve_contests;
-pub mod retrieve_leaderboard;
+pub mod handlers;
+pub mod service;
 
 use crate::utils::app_state::AppState;
 use axum::{
@@ -18,19 +11,24 @@ use axum::{
 pub fn router() -> Router<AppState> {
     Router::new()
         .route(
-            "/contest/registration",
-            post(create_registration::create).delete(delete_registration::delete),
+            "/contest",
+            get(handlers::retrieve)
+                .post(handlers::create)
+                .put(handlers::update)
+                .delete(handlers::delete),
         )
-        .route("/contests", get(retrieve_contests::retrieve))
+        .route("/contests", get(handlers::retrieve_many))
         .route(
             "/contest/problems",
-            get(retrieve_contest_problems::retrieve)
-                .post(add_contest_problems::add)
-                .delete(delete_contest_problems::delete),
+            get(handlers::retrieve_problems)
+                .post(handlers::add_problems)
+                .delete(handlers::delete_problem),
         )
         .route(
-            "/contest",
-            get(retrieve_contest::retrieve).post(create_contest::create),
+            "/contest/registration",
+            post(handlers::register).delete(handlers::unregister),
         )
-        .route("/contest/leaderboard", get(retrieve_leaderboard::retrieve))
+        .route("/contest/leaderboard", get(handlers::retrieve_leaderboard))
+        .route("/contest/leaderboard/stream", get(handlers::stream_leaderboard))
+        .route("/contest/leaderboard/ws", get(handlers::ws_leaderboard))
 }

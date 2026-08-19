@@ -16,7 +16,7 @@ impl MigrationTrait for Migration {
                     .col(big_integer(ContestRegistrations::UserId))
                     .col(big_integer(ContestRegistrations::ContestId))
                     .col(
-                        timestamp(ContestRegistrations::RegisteredAt)
+                        timestamp_with_time_zone(ContestRegistrations::RegisteredAt)
                             .default(Expr::current_timestamp()),
                     )
                     .foreign_key(

@@ -1,10 +1,10 @@
-use chrono::NaiveDateTime;
+use sea_orm::entity::prelude::DateTimeWithTimeZone;
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateSubmissionPayload {
-    pub user_id: i64,
+    pub user_id: Option<i64>,
     pub problem_id: i64,
     pub language: String,
     pub code: String,
@@ -35,7 +35,7 @@ pub struct TimeAndMemoryLimit {
     pub memory_limit: i16,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ResponseFromWorker {
     pub id: i64,
     pub status: String,
@@ -72,6 +72,6 @@ pub struct RetrieveSubmissionsResponse {
     pub verdict: Option<String>,
     pub time: Option<i16>,
     pub memory: Option<i16>,
-    pub submitted_at: NaiveDateTime,
+    pub submitted_at: DateTimeWithTimeZone,
     pub contest_id: Option<i64>,
 }

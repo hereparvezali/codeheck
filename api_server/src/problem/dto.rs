@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use sea_orm::entity::prelude::DateTimeWithTimeZone;
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
@@ -7,6 +7,7 @@ pub struct RetrieveProblemQuery {
     pub id: Option<i64>,
     pub slug: Option<String>,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateProblemPayload {
     pub title: String,
@@ -21,10 +22,10 @@ pub struct CreateProblemPayload {
     pub difficulty: Option<String>,
     pub is_public: Option<bool>,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateProblemPayload {
     pub id: i64,
-
     pub title: Option<String>,
     pub slug: Option<String>,
     pub statement: Option<String>,
@@ -36,7 +37,7 @@ pub struct UpdateProblemPayload {
     pub memory_limit: Option<i16>,
     pub difficulty: Option<String>,
     pub is_public: Option<bool>,
-    pub created_at: Option<NaiveDateTime>,
+    pub created_at: Option<DateTimeWithTimeZone>,
     pub author_id: Option<i64>,
 }
 
@@ -45,12 +46,18 @@ pub struct RetrieveProblemsQueryWithCursor {
     pub cursor: Option<i64>,
     pub limit: Option<u64>,
     pub offset: Option<u64>,
-
     pub difficulty: Option<String>,
     pub author_id: Option<i64>,
     pub user_id: Option<i64>,
     pub status: Option<String>,
+    pub search: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DeleteProblemQuery {
+    pub id: i64,
+}
+
 #[derive(Debug, Serialize, Deserialize, FromQueryResult)]
 pub struct RetrieveProblemsResponse {
     pub id: i64,
@@ -58,10 +65,11 @@ pub struct RetrieveProblemsResponse {
     pub title: String,
     pub difficulty: Option<String>,
     pub is_public: bool,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeWithTimeZone,
     pub author_id: Option<i64>,
     pub status: Option<String>,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RetrieveProblemsWithCursorResponse {
     pub cursor: Option<i64>,
@@ -72,4 +80,21 @@ pub struct RetrieveProblemsWithCursorResponse {
 pub struct ProblemIdAuthorId {
     pub id: i64,
     pub author_id: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Case {
+    pub input: String,
+    pub output: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateTestcasePayload {
+    pub problem_id: i64,
+    pub cases: Vec<Case>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct QueryByProblemId {
+    pub problem_id: i64,
 }

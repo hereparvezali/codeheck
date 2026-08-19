@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                     .col(text_null(Submissions::Verdict))
                     .col(small_integer_null(Submissions::Time))
                     .col(small_integer_null(Submissions::Memory))
-                    .col(timestamp(Submissions::SubmittedAt).default(Expr::current_timestamp()))
+                    .col(timestamp_with_time_zone(Submissions::SubmittedAt).default(Expr::current_timestamp()))
                     .col(big_integer_null(Submissions::ContestId))
                     .foreign_key(
                         ForeignKey::create()

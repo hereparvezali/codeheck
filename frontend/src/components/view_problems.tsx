@@ -1,104 +1,6 @@
-// import { useNavigate } from "react-router-dom";
-// import type { Problem } from "../problems/problems";
-
-// interface ViewProblemsProps {
-//     problems: Problem[];
-//     id?: boolean;
-//     slug?: boolean;
-//     title?: boolean;
-//     difficulty?: boolean;
-//     is_public?: boolean;
-//     edit?: boolean;
-// }
-// const difficultyColors: Record<string, string> = {
-//     Easy: "bg-green-100 text-green-800",
-//     Medium: "bg-yellow-100 text-yellow-800",
-//     Hard: "bg-red-100 text-red-800",
-// };
-// export function ViewProblems({
-//     problems,
-//     id = false,
-//     slug = false,
-//     title = false,
-//     difficulty = false,
-//     is_public = false,
-//     edit = false,
-// }: ViewProblemsProps) {
-//     const navigator = useNavigate();
-//     return (
-//         <table className="w-full border-collapse">
-//             <thead className="bg-gray-100 text-left">
-//                 <tr>
-//                     <th className="p-3">#</th>
-//                     <th className="p-3">Title</th>
-//                     <th className="p-3">Slug</th>
-//                     <th className="p-3">Difficulty</th>
-//                     {show_is_public && <th className="p-3">Visibility</th>}
-//                     <th className="p-3">Created At</th>
-//                     {edit && <th className="p-3">Actions</th>}
-//                 </tr>
-//             </thead>
-//             <tbody>
-//                 {problems.map((p) => (
-//                     <tr key={p.id} className="border-b hover:bg-gray-50">
-//                         <td className="p-3">
-//                             {/*{(page - 1) * limit + idx + 1}*/}
-//                             {p.id}
-//                         </td>
-//                         <td
-//                             className="p-3 text-blue-600 cursor-pointer hover:underline"
-//                             onClick={() => navigator(`/problems/${p.id}`)}
-//                         >
-//                             {p.title}
-//                         </td>
-//                         <td className="p-3">{p.id}</td>
-//                         <td className="p-3">
-//                             {p.difficulty ? (
-//                                 <span
-//                                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
-//                                         difficultyColors[p.difficulty] ||
-//                                         "bg-gray-200 text-gray-800"
-//                                     }`}
-//                                 >
-//                                     {p.difficulty}
-//                                 </span>
-//                             ) : (
-//                                 "-"
-//                             )}
-//                         </td>
-//                         {show_is_public && (
-//                             <td className="p-3">
-//                                 {p.is_public ? "Public" : "Private"}
-//                             </td>
-//                         )}
-//                         <td className="p-3 text-sm text-gray-500">
-//                             {new Date(p.created_at).toLocaleDateString()}
-//                         </td>
-//                         {edit && (
-//                             <td className="p-3">
-//                                 <button
-//                                     onClick={(e) => {
-//                                         e.stopPropagation();
-//                                         navigator(
-//                                             `/admin/edit_problem/${p.id}`,
-//                                         );
-//                                     }}
-//                                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-//                                 >
-//                                     Edit
-//                                 </button>
-//                             </td>
-//                         )}
-//                     </tr>
-//                 ))}
-//             </tbody>
-//         </table>
-//     );
-// }
-
 import { useNavigate } from "react-router-dom";
 import type { Problem } from "../problems/problems";
-import { getStatusColor } from "../utils/helpers";
+import { getStatusColor, parseUtcDate } from "../utils/helpers";
 
 interface ViewProblemsProps {
     problems: Problem[];
@@ -112,9 +14,9 @@ interface ViewProblemsProps {
 }
 
 const difficultyColors: Record<string, string> = {
-    Easy: "bg-green-100 text-green-800",
-    Medium: "bg-yellow-100 text-yellow-800",
-    Hard: "bg-red-100 text-red-800",
+    easy: "bg-zinc-900 text-zinc-300 border-zinc-800",
+    medium: "bg-zinc-800 text-zinc-200 border-zinc-700 font-medium",
+    hard: "bg-zinc-700 text-white border-zinc-600 font-semibold",
 };
 
 export function ViewProblems({
@@ -131,49 +33,44 @@ export function ViewProblems({
 
     return (
         <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-                <thead className="bg-gray-100 text-left">
+            <table className="w-full border-collapse text-left text-sm">
+                <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-xs tracking-wider border-b border-zinc-800">
                     <tr>
-                        {id && <th className="p-3">#</th>}
-                        {title && <th className="p-3">Title</th>}
-                        {slug && <th className="p-3">Slug</th>}
-                        {difficulty && <th className="p-3">Difficulty</th>}
-                        {status && <th className="p-3">Status</th>}
-                        {is_public && <th className="p-3">Visibility</th>}
-                        <th className="p-3">Created At</th>
-                        {edit && <th className="p-3">Actions</th>}
+                        {id && <th className="p-4">#</th>}
+                        {title && <th className="p-4">Title</th>}
+                        {slug && <th className="p-4">Slug</th>}
+                        {difficulty && <th className="p-4">Difficulty</th>}
+                        {status && <th className="p-4">Status</th>}
+                        {is_public && <th className="p-4">Visibility</th>}
+                        <th className="p-4">Created At</th>
+                        {edit && <th className="p-4 text-right">Actions</th>}
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody className="divide-y divide-zinc-900">
                     {problems.map((p) => (
                         <tr
                             key={p.id}
-                            className="border-b hover:bg-gray-50 transition-colors"
+                            className="hover:bg-zinc-900/60 transition-colors group cursor-pointer"
+                            onClick={() => navigate(`/problems/${p.id}`)}
                         >
-                            {id && <td className="p-3">{p.id}</td>}
+                            {id && <td className="p-4 font-mono text-zinc-500 text-xs">#{p.id}</td>}
 
                             {title && (
-                                <td
-                                    className="p-3 text-blue-600 cursor-pointer hover:underline"
-                                    onClick={() =>
-                                        navigate(`/problems/${p.id}`)
-                                    }
-                                >
+                                <td className="p-4 font-medium text-zinc-200 group-hover:text-white transition">
                                     {p.title}
                                 </td>
                             )}
 
-                            {slug && <td className="p-3">{p.slug}</td>}
+                            {slug && <td className="p-4 text-zinc-400 font-mono text-xs">{p.slug}</td>}
 
                             {difficulty && (
-                                <td className="p-3">
+                                <td className="p-4">
                                     {p.difficulty ? (
                                         <span
-                                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                difficultyColors[
-                                                    p.difficulty
-                                                ] || "bg-gray-200 text-gray-800"
+                                            className={`px-2.5 py-0.5 rounded-md text-xs border ${
+                                                difficultyColors[p.difficulty.toLowerCase()] ||
+                                                "bg-zinc-900 text-zinc-300 border-zinc-800"
                                             }`}
                                         >
                                             {p.difficulty}
@@ -184,34 +81,38 @@ export function ViewProblems({
                                 </td>
                             )}
 
-                            {is_public && (
-                                <td className="p-3">
-                                    {p.is_public ? "Public" : "Private"}
-                                </td>
-                            )}
-
                             {status && (
-                                <td
-                                    className={`p-3 ${getStatusColor(p.status? p.status: "")}`}
-                                >
-                                    {p.status}
+                                <td className="p-4">
+                                    {p.status ? (
+                                        <span className={`px-2 py-0.5 rounded text-xs ${getStatusColor(p.status)}`}>
+                                            {p.status}
+                                        </span>
+                                    ) : (
+                                        <span className="text-zinc-600 text-xs">-</span>
+                                    )}
                                 </td>
                             )}
 
-                            <td className="p-3 text-sm text-gray-500">
-                                {new Date(p.created_at).toLocaleDateString()}
+                            {is_public && (
+                                <td className="p-4">
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded border ${p.is_public ? "text-zinc-300 bg-zinc-900 border-zinc-800" : "text-zinc-500 bg-zinc-950 border-zinc-900"}`}>
+                                        {p.is_public ? "Public" : "Private"}
+                                    </span>
+                                </td>
+                            )}
+
+                            <td className="p-4 text-xs text-zinc-500">
+                                {parseUtcDate(p.created_at).toLocaleDateString()}
                             </td>
 
                             {edit && (
-                                <td className="p-3">
+                                <td className="p-4 text-right">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            navigate(
-                                                `/admin/edit_problem/${p.id}`,
-                                            );
+                                            navigate(`/admin/edit_problem/${p.id}`);
                                         }}
-                                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                        className="px-3 py-1 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-lg transition"
                                     >
                                         Edit
                                     </button>
@@ -223,9 +124,9 @@ export function ViewProblems({
             </table>
 
             {problems.length === 0 && (
-                <p className="text-center text-gray-500 mt-4">
+                <div className="text-center text-zinc-500 py-12">
                     No problems found.
-                </p>
+                </div>
             )}
         </div>
     );

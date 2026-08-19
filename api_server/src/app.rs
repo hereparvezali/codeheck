@@ -1,5 +1,5 @@
-use crate::{error::AppError, routes, utils::app_state::AppState};
-use axum::{Router, http::StatusCode, routing::get};
+use crate::{error::AppError, routes, utils::{app_state::AppState, logger}};
+use axum::{Router, http::StatusCode, middleware, routing::get};
 use std::time::Duration;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
@@ -7,6 +7,9 @@ use tower_http::{cors::CorsLayer, timeout::TimeoutLayer};
 
 pub async fn app() -> Result<Router, AppError> {
     let state = AppState::new().await?;
+
+
+    crate::submission::consumer::VerdictsConsumer::start(state.clone());
 
     let api_routes = routes::api_routes(&state);
 
@@ -21,7 +24,8 @@ pub async fn app() -> Result<Router, AppError> {
                 .layer(TimeoutLayer::with_status_code(
                     StatusCode::SERVICE_UNAVAILABLE,
                     Duration::from_secs(5),
-                )),
+                ))
+                .layer(middleware::from_fn(logger::logger)),
         )
         .with_state(state);
 

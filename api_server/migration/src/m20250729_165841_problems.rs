@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
                     .col(small_integer(Problems::MemoryLimit).default(256))
                     .col(string_null(Problems::Difficulty).string_len(8))
                     .col(boolean(Problems::IsPublic).default(false))
-                    .col(timestamp(Problems::CreatedAt).default(Expr::current_timestamp()))
+                    .col(timestamp_with_time_zone(Problems::CreatedAt).default(Expr::current_timestamp()))
                     .col(big_integer_null(Problems::AuthorId))
                     .foreign_key(
                         ForeignKey::create()

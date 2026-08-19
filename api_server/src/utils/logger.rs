@@ -6,7 +6,7 @@ use axum::{
 };
 use std::time::Instant;
 
-/// Simple logging middleware that logs request method, URI, and duration
+
 pub async fn logger(req: Request, next: Next) -> Response {
     let method = req.method().clone();
     let uri = req.uri().clone();

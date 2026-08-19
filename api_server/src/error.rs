@@ -6,7 +6,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// Main application error type
+
 #[derive(Error, Debug)]
 pub enum AppError {
     #[error("Database error: {0}")]
@@ -36,9 +36,6 @@ pub enum AppError {
     #[error("Service unavailable: {0}")]
     ServiceUnavailable(String),
 
-    #[error("Hashing error: {0}")]
-    HashError(#[from] bcrypt::BcryptError),
-
     #[error("JWT error: {0}")]
     JwtError(#[from] jsonwebtoken::errors::Error),
 
@@ -46,7 +43,7 @@ pub enum AppError {
     Other(#[from] anyhow::Error),
 }
 
-/// Error response structure
+
 #[derive(Serialize, Deserialize)]
 struct ErrorResponse {
     error: String,
@@ -83,11 +80,6 @@ impl IntoResponse for AppError {
                 "SERVICE_UNAVAILABLE",
                 msg.clone(),
             ),
-            AppError::HashError(e) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "HASH_ERROR",
-                format!("Hashing failed: {}", e),
-            ),
             AppError::JwtError(e) => (
                 StatusCode::UNAUTHORIZED,
                 "JWT_ERROR",
@@ -110,48 +102,48 @@ impl IntoResponse for AppError {
     }
 }
 
-/// Type alias for Result with AppError
+
 pub type AppResult<T> = Result<T, AppError>;
 
 impl AppError {
-    /// Create a not found error
+
     pub fn not_found(resource: impl Into<String>) -> Self {
         Self::NotFound {
             resource: resource.into(),
         }
     }
 
-    /// Create an authentication error
+
     pub fn auth(message: impl Into<String>) -> Self {
         Self::AuthError(message.into())
     }
 
-    /// Create a validation error
+
     pub fn validation(message: impl Into<String>) -> Self {
         Self::Validation(message.into())
     }
 
-    /// Create a conflict error
+
     pub fn conflict(message: impl Into<String>) -> Self {
         Self::Conflict(message.into())
     }
 
-    /// Create a bad request error
+
     pub fn bad_request(message: impl Into<String>) -> Self {
         Self::BadRequest(message.into())
     }
 
-    /// Create a forbidden error
+
     pub fn forbidden(message: impl Into<String>) -> Self {
         Self::Forbidden(message.into())
     }
 
-    /// Create an internal server error
+
     pub fn internal(message: impl Into<String>) -> Self {
         Self::InternalServer(message.into())
     }
 
-    /// Create a service unavailable error
+
     pub fn service_unavailable(message: impl Into<String>) -> Self {
         Self::ServiceUnavailable(message.into())
     }

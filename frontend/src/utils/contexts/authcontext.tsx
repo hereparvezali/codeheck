@@ -37,12 +37,11 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const base: string = import.meta.env.VITE_BASE;
+  const base: string = import.meta.env.VITE_BASE || "http://localhost:8000/api";
 
-  // Login function expects exactly one of username or email + password
   const signin = async (params: LoginPayload): Promise<string | null> => {
     const res = await fetch(base + "/user/signin", {
-      method: "GET",
+      method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
@@ -50,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     if (!res.ok) {
       setUser(null);
-      throw new Error(await res.json());
+      throw new Error(await res.text());
     }
 
     const data: User = await res.json();
@@ -61,17 +60,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refresh = async (): Promise<string | null> => {
     try {
       const res = await fetch(base + "/user/refresh", {
-        method: "GET",
+        method: "POST",
         credentials: "include",
       });
 
       if (!res.ok) throw new Error(res.statusText);
       const data: User = await res.json();
-      console.log(data);
       setUser(data);
       return data.access_token;
     } catch (e) {
       setUser(null);
+      localStorage.removeItem("user");
       console.error("Refresh failed:", e);
       return null;
     } finally {
@@ -80,10 +79,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signout = async (): Promise<void> => {
+    setUser(null);
+    localStorage.removeItem("user");
     try {
-      setUser(null);
       await fetch(base + "/user/signout", {
-        method: "GET",
+        method: "POST",
         credentials: "include",
       });
     } catch (e) {
@@ -96,32 +96,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     options: RequestInit = {},
   ): Promise<Response> => {
     let token = user?.access_token ?? null;
-    if (!token) {
-      token = await refresh();
+
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
 
     let res = await fetch(base + url, {
       ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
 
-    if (res.status === 401) {
+    if (res.status === 401 && user) {
       token = await refresh();
+      if (!token) return res;
+      headers["Authorization"] = `Bearer ${token}`;
       res = await fetch(base + url, {
         ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
       });
     }
     return res;
   };
 
-  // Optional: on mount, refresh user to persist signin after reload
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (!stored) {
@@ -131,7 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(parsed);
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   useEffect(() => {
@@ -148,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
+
 export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");

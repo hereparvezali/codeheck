@@ -46,7 +46,7 @@ const CreateProblem = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"basic" | "samples" | "testcases">("basic");
 
-    // Sync cases array length with caseCount
+
     useEffect(() => {
         setCases((prev) => {
             if (caseCount > prev.length) {
@@ -71,9 +71,9 @@ const CreateProblem = () => {
         const { name, value, type } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: 
-                type === "number" 
-                    ? Number(value) 
+            [name]:
+                type === "number"
+                    ? Number(value)
                     : type === "checkbox"
                     ? (e.target as HTMLInputElement).checked
                     : value,
@@ -125,7 +125,6 @@ const CreateProblem = () => {
 
     const handleCaseSubmit = async (problem_id: number) => {
         setTestcaseloading(true);
-        console.log(JSON.stringify({ problem_id: problem_id, cases: cases }));
         authfetch(`/problem/testcases`, {
             method: "POST",
             headers: {
@@ -157,350 +156,361 @@ const CreateProblem = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto p-6 bg-white shadow-md rounded-lg my-6">
-            <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2">Create New Problem</h2>
-                <p className="text-gray-600">Fill in the details to create a competitive programming problem</p>
-            </div>
-            
-            {error && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-700 font-medium">Error</p>
-                    <p className="text-red-600 text-sm">{error}</p>
-                </div>
-            )}
-
-            {/* Tab Navigation */}
-            <div className="flex gap-2 mb-6 border-b">
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("basic")}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                        activeTab === "basic"
-                            ? "border-b-2 border-blue-600 text-blue-600"
-                            : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                    Basic Info
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("samples")}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                        activeTab === "samples"
-                            ? "border-b-2 border-blue-600 text-blue-600"
-                            : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                    Samples & Specs
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("testcases")}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                        activeTab === "testcases"
-                            ? "border-b-2 border-blue-600 text-blue-600"
-                            : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                    Test Cases ({caseCount})
-                </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Basic Info Tab */}
-                {activeTab === "basic" && (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block font-medium text-gray-700 mb-2">
-                                    Problem Title *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="title"
-                                    value={formData.title}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="e.g., Two Sum"
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block font-medium text-gray-700 mb-2">
-                                    Slug (URL-friendly) *
-                                </label>
-                                <input
-                                    type="text"
-                                    name="slug"
-                                    value={formData.slug}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="e.g., two-sum"
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block font-medium text-gray-700 mb-2">
-                                Problem Statement *
-                            </label>
-                            <textarea
-                                name="statement"
-                                value={formData.statement}
-                                onChange={handleChange}
-                                rows={8}
-                                placeholder="Describe the problem clearly. Include constraints, examples, and any important notes."
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Support for markdown formatting
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block font-medium text-gray-700 mb-2">
-                                    Difficulty *
-                                </label>
-                                <select
-                                    name="difficulty"
-                                    value={formData.difficulty}
-                                    onChange={handleChange}
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                    <option value="easy">Easy</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="hard">Hard</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block font-medium text-gray-700 mb-2">
-                                    Time Limit (ms) *
-                                </label>
-                                <input
-                                    type="number"
-                                    name="time_limit"
-                                    value={formData.time_limit}
-                                    onChange={handleChange}
-                                    required
-                                    min="100"
-                                    step="100"
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                            <div>
-                                <label className="block font-medium text-gray-700 mb-2">
-                                    Memory Limit (MB) *
-                                </label>
-                                <input
-                                    type="number"
-                                    name="memory_limit"
-                                    value={formData.memory_limit}
-                                    onChange={handleChange}
-                                    required
-                                    min="16"
-                                    step="16"
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg">
-                            <input
-                                type="checkbox"
-                                name="is_public"
-                                id="is_public"
-                                checked={formData.is_public}
-                                onChange={handleChange}
-                                className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                            />
-                            <label htmlFor="is_public" className="text-sm font-medium text-gray-700">
-                                Make this problem publicly visible
-                            </label>
-                        </div>
+        <div className="min-h-screen bg-black text-zinc-100 py-10 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-5xl mx-auto p-6 sm:p-8 bg-zinc-950 border border-zinc-900 rounded-2xl shadow-lg space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-900 pb-5">
+                    <div>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Create New Problem</h2>
+                        <p className="text-xs text-zinc-400 mt-1">Fill in the details to create a competitive programming problem</p>
                     </div>
-                )}
-
-                {/* Samples & Specs Tab */}
-                {activeTab === "samples" && (
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block font-medium text-gray-700 mb-2">
-                                Input Specification
-                            </label>
-                            <textarea
-                                name="input_spec"
-                                value={formData.input_spec}
-                                onChange={handleChange}
-                                rows={4}
-                                placeholder="Describe the input format line by line"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block font-medium text-gray-700 mb-2">
-                                Output Specification
-                            </label>
-                            <textarea
-                                name="output_spec"
-                                value={formData.output_spec}
-                                onChange={handleChange}
-                                rows={4}
-                                placeholder="Describe the expected output format"
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block font-medium text-gray-700 mb-2">
-                                    Sample Input(s)
-                                </label>
-                                <textarea
-                                    name="sample_inputs"
-                                    value={formData.sample_inputs}
-                                    onChange={handleChange}
-                                    rows={6}
-                                    placeholder="Example input for users to understand"
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                                />
-                            </div>
-                            <div>
-                                <label className="block font-medium text-gray-700 mb-2">
-                                    Sample Output(s)
-                                </label>
-                                <textarea
-                                    name="sample_outputs"
-                                    value={formData.sample_outputs}
-                                    onChange={handleChange}
-                                    rows={6}
-                                    placeholder="Expected output for the sample input"
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Test Cases Tab */}
-                {activeTab === "testcases" && (
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div>
-                                <p className="font-medium text-blue-900">Test Cases</p>
-                                <p className="text-sm text-blue-700">
-                                    Add hidden test cases to validate submissions
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={addCase}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                            >
-                                <span>+</span> Add Test Case
-                            </button>
-                        </div>
-
-                        {cases.length === 0 ? (
-                            <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                                <p className="text-gray-500">No test cases added yet</p>
-                                <p className="text-sm text-gray-400 mt-1">
-                                    Click "Add Test Case" to get started
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {cases.map((c, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="border border-gray-300 rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
-                                    >
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h4 className="font-semibold text-gray-700">
-                                                Test Case #{idx + 1}
-                                            </h4>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeCaseAt(idx)}
-                                                className="text-red-600 hover:text-red-800 text-sm font-medium"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                    Input
-                                                </label>
-                                                <textarea
-                                                    placeholder={`Input for test case ${idx + 1}`}
-                                                    value={c.input}
-                                                    onChange={(e) =>
-                                                        handleCaseChange(
-                                                            idx,
-                                                            "input",
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    rows={4}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                                    Expected Output
-                                                </label>
-                                                <textarea
-                                                    placeholder={`Output for test case ${idx + 1}`}
-                                                    value={c.output}
-                                                    onChange={(e) =>
-                                                        handleCaseChange(
-                                                            idx,
-                                                            "output",
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    rows={4}
-                                                    className="w-full border border-gray-300 rounded px-3 py-2 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Submit Button */}
-                <div className="flex gap-3 pt-4 border-t">
                     <button
                         type="button"
                         onClick={() => navigate(-1)}
-                        className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                        className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-xl text-xs font-medium transition"
                     >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={loading || testcaseloading}
-                        className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                    >
-                        {loading || testcaseloading ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <span className="animate-spin">⏳</span>
-                                {loading ? "Creating Problem..." : "Adding Test Cases..."}
-                            </span>
-                        ) : (
-                            "Create Problem"
-                        )}
+                        &larr; Back to Dashboard
                     </button>
                 </div>
-            </form>
+
+                {error && (
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300">
+                        <p className="font-semibold text-white">Error</p>
+                        <p className="mt-0.5">{error}</p>
+                    </div>
+                )}
+
+                {}
+                <div className="flex gap-2 border-b border-zinc-900 pb-2">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("basic")}
+                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition ${
+                            activeTab === "basic"
+                                ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm"
+                                : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                    >
+                        Basic Info
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("samples")}
+                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition ${
+                            activeTab === "samples"
+                                ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm"
+                                : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                    >
+                        Samples & Specs
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("testcases")}
+                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition ${
+                            activeTab === "testcases"
+                                ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm"
+                                : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                    >
+                        Test Cases ({caseCount})
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {}
+                    {activeTab === "basic" && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                        Problem Title *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="title"
+                                        value={formData.title}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="e.g., Two Sum"
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                        Slug (URL-friendly) *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="slug"
+                                        value={formData.slug}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="e.g., two-sum"
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs font-mono"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                    Problem Statement *
+                                </label>
+                                <textarea
+                                    name="statement"
+                                    value={formData.statement}
+                                    onChange={handleChange}
+                                    rows={8}
+                                    placeholder="Describe the problem clearly. Include constraints, examples, and any important notes (Markdown supported)."
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition font-mono text-xs leading-relaxed"
+                                />
+                                <p className="text-[11px] text-zinc-500 mt-1">
+                                    Markdown syntax is supported for mathematical formulations and code blocks.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                        Difficulty *
+                                    </label>
+                                    <select
+                                        name="difficulty"
+                                        value={formData.difficulty}
+                                        onChange={handleChange}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-white focus:border-zinc-500 outline-none transition text-xs"
+                                    >
+                                        <option value="easy">Easy</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                        Time Limit (ms) *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="time_limit"
+                                        value={formData.time_limit}
+                                        onChange={handleChange}
+                                        required
+                                        min="100"
+                                        step="100"
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                        Memory Limit (MB) *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="memory_limit"
+                                        value={formData.memory_limit}
+                                        onChange={handleChange}
+                                        required
+                                        min="16"
+                                        step="16"
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs font-mono"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl">
+                                <input
+                                    type="checkbox"
+                                    name="is_public"
+                                    id="is_public"
+                                    checked={formData.is_public}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 rounded bg-zinc-900 border-zinc-700 text-zinc-300 focus:ring-0 cursor-pointer"
+                                />
+                                <label htmlFor="is_public" className="text-xs font-medium text-zinc-300 cursor-pointer">
+                                    Make this problem publicly visible in the problem repository
+                                </label>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {activeTab === "samples" && (
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                    Input Specification
+                                </label>
+                                <textarea
+                                    name="input_spec"
+                                    value={formData.input_spec}
+                                    onChange={handleChange}
+                                    rows={4}
+                                    placeholder="Describe the input format line by line..."
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition font-mono text-xs"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                    Output Specification
+                                </label>
+                                <textarea
+                                    name="output_spec"
+                                    value={formData.output_spec}
+                                    onChange={handleChange}
+                                    rows={4}
+                                    placeholder="Describe the expected output format..."
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition font-mono text-xs"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                        Sample Input(s)
+                                    </label>
+                                    <textarea
+                                        name="sample_inputs"
+                                        value={formData.sample_inputs}
+                                        onChange={handleChange}
+                                        rows={6}
+                                        placeholder="Example input for users to understand..."
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition font-mono text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                        Sample Output(s)
+                                    </label>
+                                    <textarea
+                                        name="sample_outputs"
+                                        value={formData.sample_outputs}
+                                        onChange={handleChange}
+                                        rows={6}
+                                        placeholder="Expected output corresponding to the sample input..."
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition font-mono text-xs"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {activeTab === "testcases" && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+                                <div>
+                                    <p className="font-semibold text-zinc-200 text-xs">Hidden Test Cases</p>
+                                    <p className="text-[11px] text-zinc-500 mt-0.5">
+                                        Add test cases to judge user submissions against the problem.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={addCase}
+                                    className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+                                >
+                                    <span>+</span> Add Test Case
+                                </button>
+                            </div>
+
+                            {cases.length === 0 ? (
+                                <div className="text-center py-12 bg-zinc-950 rounded-xl border border-dashed border-zinc-800">
+                                    <p className="text-zinc-400 font-medium text-xs">No test cases added yet</p>
+                                    <p className="text-[11px] text-zinc-500 mt-1">
+                                        Click "Add Test Case" to configure hidden inputs and outputs.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {cases.map((c, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="border border-zinc-800 rounded-xl p-4 bg-zinc-900/60 transition"
+                                        >
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h4 className="font-semibold text-zinc-200 text-xs">
+                                                    Test Case #{idx + 1}
+                                                </h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeCaseAt(idx)}
+                                                    className="text-zinc-400 hover:text-white text-xs font-semibold px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">
+                                                        Input
+                                                    </label>
+                                                    <textarea
+                                                        placeholder={`Input for test case ${idx + 1}`}
+                                                        value={c.input}
+                                                        onChange={(e) =>
+                                                            handleCaseChange(
+                                                                idx,
+                                                                "input",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        rows={4}
+                                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 font-mono text-xs text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-1">
+                                                        Expected Output
+                                                    </label>
+                                                    <textarea
+                                                        placeholder={`Output for test case ${idx + 1}`}
+                                                        value={c.output}
+                                                        onChange={(e) =>
+                                                            handleCaseChange(
+                                                                idx,
+                                                                "output",
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        rows={4}
+                                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 font-mono text-xs text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {}
+                    <div className="flex gap-3 pt-4 border-t border-zinc-900">
+                        <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-xl font-medium transition text-xs"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading || testcaseloading}
+                            className="flex-1 bg-zinc-100 hover:bg-white text-zinc-950 font-semibold py-2.5 px-6 rounded-xl shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition text-xs"
+                        >
+                            {loading || testcaseloading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <div className="w-3 h-3 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
+                                    {loading ? "Creating Problem..." : "Adding Test Cases..."}
+                                </span>
+                            ) : (
+                                "Create Problem"
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

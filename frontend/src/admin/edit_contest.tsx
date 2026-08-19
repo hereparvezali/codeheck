@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../utils/contexts/authcontext";
 import { useNavigate, useParams } from "react-router-dom";
+import { toLocalDatetimeInput, toUtcIsoString } from "../utils/helpers";
 
 interface UpdateContestPayload {
     title?: string;
@@ -31,7 +32,10 @@ interface Problem {
 
 interface ContestProblem {
     id: number;
-    problem_id: number;
+    problem_id?: number;
+    title?: string;
+    slug?: string;
+    difficulty?: string;
     label?: string;
     problem?: Problem;
 }
@@ -62,7 +66,7 @@ const EditContest = () => {
         "details",
     );
 
-    // For managing problems
+
     const [contestProblems, setContestProblems] = useState<ContestProblem[]>(
         [],
     );
@@ -70,7 +74,7 @@ const EditContest = () => {
     const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
 
-    // Fetch existing contest data
+
     useEffect(() => {
         if (!id) return;
 
@@ -91,13 +95,13 @@ const EditContest = () => {
                     title: data.title,
                     slug: data.slug,
                     description: data.description || "",
-                    start_time: toLocalDatetimeString(data.start_time),
-                    end_time: toLocalDatetimeString(data.end_time),
+                    start_time: toLocalDatetimeInput(data.start_time),
+                    end_time: toLocalDatetimeInput(data.end_time),
                     is_public: data.is_public,
                 });
 
-                // Fetch contest problems
-                return authfetch(`/contest/problems?contest_id=${data.id}`);
+
+                return authfetch(`/contest/problems?id=${data.id}`);
             })
             .then(async (res) => {
                 if (res && res.ok) {
@@ -112,15 +116,15 @@ const EditContest = () => {
             .finally(() => {
                 setFetchLoading(false);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [id]);
 
-    // Fetch available problems when on problems tab
+
     useEffect(() => {
         if (activeTab === "problems" && availableProblems.length === 0) {
             fetchAvailableProblems();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [activeTab]);
 
     const fetchAvailableProblems = async () => {
@@ -171,17 +175,17 @@ const EditContest = () => {
         const payload = {
             ...form,
             start_time: form.start_time
-                ? toUtcString(form.start_time)
+                ? toUtcIsoString(form.start_time)
                 : undefined,
-            end_time: form.end_time ? toUtcString(form.end_time) : undefined,
+            end_time: form.end_time ? toUtcIsoString(form.end_time) : undefined,
         };
 
-        authfetch(`/contest?contest_id=${contestId}`, {
+        authfetch(`/contest`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ id: contestId, ...payload }),
         })
             .then(async (res) => {
                 if (!res.ok) {
@@ -195,8 +199,8 @@ const EditContest = () => {
                 }
                 return res.json();
             })
-            .then((data: ContestResponse) => {
-                navigator(`/contests/${data.id}`);
+            .then(async () => {
+                navigator(`/contests/${contestId}`);
             })
             .catch((e) => {
                 setError(e.message ?? "Something went wrong");
@@ -248,7 +252,7 @@ const EditContest = () => {
                 throw new Error(text);
             }
 
-            // Refresh contest problems
+
             const problemsRes = await authfetch(
                 `/contest/problems?id=${contestId}`,
             );
@@ -287,7 +291,7 @@ const EditContest = () => {
                 throw new Error(await res.text());
             }
 
-            // Remove from local state
+
             setContestProblems((prev) =>
                 prev.filter((p) => p.id !== contestProblemId),
             );
@@ -303,318 +307,318 @@ const EditContest = () => {
 
     if (fetchLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin text-4xl mb-4">⏳</div>
-                    <p className="text-gray-600">Loading contest data...</p>
+            <div className="flex items-center justify-center min-h-screen bg-black text-zinc-100">
+                <div className="text-center space-y-3">
+                    <div className="w-7 h-7 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-zinc-400 text-xs">Loading contest data...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto mt-10 p-6 border rounded-lg shadow-md">
-            <h2 className="text-3xl font-bold mb-2">Edit Contest</h2>
-            <p className="text-gray-600 mb-6">
-                Update contest details and manage problems
-            </p>
-
-            {error && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-700 font-medium">Error</p>
-                    <p className="text-red-600 text-sm">{error}</p>
+        <div className="min-h-screen bg-black text-zinc-100 py-10 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto p-6 sm:p-8 bg-zinc-950 border border-zinc-900 rounded-2xl shadow-lg space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-900 pb-5">
+                    <div>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Edit Contest</h2>
+                        <p className="text-xs text-zinc-400 mt-1">
+                            Update contest schedule, metadata, and manage problem pool
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => navigator(-1)}
+                        className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-xl text-xs font-medium transition"
+                    >
+                        &larr; Back to Dashboard
+                    </button>
                 </div>
-            )}
 
-            {/* Tab Navigation */}
-            <div className="flex gap-2 mb-6 border-b">
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("details")}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                        activeTab === "details"
-                            ? "border-b-2 border-blue-600 text-blue-600"
-                            : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                    Contest Details
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab("problems")}
-                    className={`px-4 py-2 font-medium transition-colors ${
-                        activeTab === "problems"
-                            ? "border-b-2 border-blue-600 text-blue-600"
-                            : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                    Problems ({contestProblems.length})
-                </button>
-            </div>
-
-            {/* Contest Details Tab */}
-            {activeTab === "details" && (
-                <form onSubmit={handleContestSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Title *
-                        </label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={form.title}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
+                {error && (
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300">
+                        <p className="font-semibold text-white">Error</p>
+                        <p className="mt-0.5">{error}</p>
                     </div>
+                )}
 
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Slug *
-                        </label>
-                        <input
-                            type="text"
-                            name="slug"
-                            value={form.slug}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
+                {}
+                <div className="flex gap-2 border-b border-zinc-900 pb-2">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("details")}
+                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition ${
+                            activeTab === "details"
+                                ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm"
+                                : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                    >
+                        Contest Details
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("problems")}
+                        className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition ${
+                            activeTab === "problems"
+                                ? "bg-zinc-800 text-white border border-zinc-700 shadow-sm"
+                                : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                    >
+                        Problems ({contestProblems.length})
+                    </button>
+                </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Description
-                        </label>
-                        <textarea
-                            name="description"
-                            value={form.description}
-                            onChange={handleChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            rows={4}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Start Time *
-                        </label>
-                        <input
-                            type="datetime-local"
-                            name="start_time"
-                            value={form.start_time}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            End Time *
-                        </label>
-                        <input
-                            type="datetime-local"
-                            name="end_time"
-                            value={form.end_time}
-                            onChange={handleChange}
-                            required
-                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg">
-                        <input
-                            type="checkbox"
-                            name="is_public"
-                            id="is_public"
-                            checked={form.is_public}
-                            onChange={handleChange}
-                            className="w-4 h-4 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                        />
-                        <label
-                            htmlFor="is_public"
-                            className="text-sm font-medium"
-                        >
-                            Public Contest
-                        </label>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                        <button
-                            type="button"
-                            onClick={() => navigator(-1)}
-                            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {loading ? "Updating..." : "Update Contest"}
-                        </button>
-                    </div>
-                </form>
-            )}
-
-            {/* Problems Tab */}
-            {activeTab === "problems" && (
-                <div className="space-y-6">
-                    {/* Current Problems */}
-                    <div>
-                        <h3 className="text-xl font-bold mb-3">
-                            Current Problems
-                        </h3>
-                        {contestProblems.length === 0 ? (
-                            <p className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                                No problems added to this contest yet
-                            </p>
-                        ) : (
-                            <div className="space-y-2">
-                                {contestProblems.map((cp) => (
-                                    <div
-                                        key={cp.id}
-                                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50"
-                                    >
-                                        <div>
-                                            <p className="font-medium">
-                                                {cp.problem?.title ||
-                                                    "Unknown Problem"}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                {cp.problem?.slug} •{" "}
-                                                {cp.problem?.difficulty ||
-                                                    "N/A"}
-                                                {cp.label &&
-                                                    ` • Label: ${cp.label}`}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() =>
-                                                handleRemoveProblem(cp.id)
-                                            }
-                                            disabled={loading}
-                                            className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
+                {}
+                {activeTab === "details" && (
+                    <form onSubmit={handleContestSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                    Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={form.title}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs"
+                                />
                             </div>
-                        )}
-                    </div>
 
-                    {/* Add New Problems */}
-                    <div>
-                        <h3 className="text-xl font-bold mb-3">
-                            Add More Problems
-                        </h3>
-                        {loadingProblems ? (
-                            <p className="text-center py-4">
-                                Loading problems...
-                            </p>
-                        ) : availableProblems.length === 0 ? (
-                            <p className="text-center py-4 text-gray-500">
-                                No problems available. Create some problems
-                                first.
-                            </p>
-                        ) : (
-                            <>
-                                <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
-                                    {availableProblems
-                                        .filter(
-                                            (p) =>
-                                                !contestProblems.some(
-                                                    (cp) =>
-                                                        cp.problem_id === p.id,
-                                                ),
-                                        )
-                                        .map((problem) => (
-                                            <div
-                                                key={problem.id}
-                                                className="flex items-center gap-3 p-3 border rounded hover:bg-gray-50"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedProblemIds.includes(
-                                                        problem.id,
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                    Slug *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="slug"
+                                    value={form.slug}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs font-mono"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                Description
+                            </label>
+                            <textarea
+                                name="description"
+                                value={form.description}
+                                onChange={handleChange}
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs leading-relaxed"
+                                rows={4}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                    Start Time *
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    name="start_time"
+                                    value={form.start_time}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs font-mono"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                                    End Time *
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    name="end_time"
+                                    value={form.end_time}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-white placeholder-zinc-600 focus:border-zinc-500 outline-none transition text-xs font-mono"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl">
+                            <input
+                                type="checkbox"
+                                name="is_public"
+                                id="is_public"
+                                checked={form.is_public}
+                                onChange={handleChange}
+                                className="w-4 h-4 rounded bg-zinc-900 border-zinc-700 text-zinc-300 focus:ring-0 cursor-pointer"
+                            />
+                            <label
+                                htmlFor="is_public"
+                                className="text-xs font-medium text-zinc-300 cursor-pointer"
+                            >
+                                <span className="block text-white font-medium">Public Contest</span>
+                                <span className="text-zinc-500 text-[11px]">
+                                    Public contests appear in the public arena and are accessible to all participants.
+                                </span>
+                            </label>
+                        </div>
+
+                        <div className="flex gap-3 pt-4 border-t border-zinc-900">
+                            <button
+                                type="button"
+                                onClick={() => navigator(-1)}
+                                className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-xl font-medium transition text-xs"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="flex-1 bg-zinc-100 hover:bg-white text-zinc-950 font-semibold py-2.5 px-6 rounded-xl shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition text-xs"
+                            >
+                                {loading ? "Updating..." : "Update Contest"}
+                            </button>
+                        </div>
+                    </form>
+                )}
+
+                {}
+                {activeTab === "problems" && (
+                    <div className="space-y-6">
+                        {}
+                        <div>
+                            <h3 className="text-sm font-bold text-white mb-3">
+                                Current Contest Problems ({contestProblems.length})
+                            </h3>
+                            {contestProblems.length === 0 ? (
+                                <div className="text-center py-8 text-zinc-400 bg-zinc-950 rounded-xl border border-dashed border-zinc-800 text-xs">
+                                    No problems added to this contest yet
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {contestProblems.map((cp) => (
+                                        <div
+                                            key={cp.id}
+                                            className="flex items-center justify-between p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl hover:border-zinc-700 transition"
+                                        >
+                                            <div>
+                                                <p className="font-semibold text-white text-xs">
+                                                    {cp.title ||
+                                                        cp.problem?.title ||
+                                                        "Problem #" + (cp.problem_id || cp.id)}
+                                                </p>
+                                                <p className="text-xs text-zinc-500 font-mono mt-0.5">
+                                                    {cp.slug || cp.problem?.slug} •{" "}
+                                                    <span className="capitalize text-zinc-400">{cp.difficulty || cp.problem?.difficulty || "N/A"}</span>
+                                                    {cp.label && (
+                                                        <span className="ml-2 px-1.5 py-0.5 bg-zinc-800 text-zinc-200 border border-zinc-700 rounded text-[11px] font-bold font-mono">
+                                                            {cp.label}
+                                                        </span>
                                                     )}
-                                                    onChange={() =>
-                                                        handleProblemToggle(
-                                                            problem.id,
-                                                        )
-                                                    }
-                                                    className="w-4 h-4"
-                                                />
-                                                <div className="flex-1">
-                                                    <p className="font-medium">
-                                                        {problem.title}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        {problem.slug} •{" "}
-                                                        {problem.difficulty ||
-                                                            "N/A"}
-                                                    </p>
-                                                </div>
-                                                <span
-                                                    className={`text-xs px-2 py-1 rounded ${
-                                                        problem.is_public
-                                                            ? "bg-green-100 text-green-800"
-                                                            : "bg-gray-100 text-gray-800"
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    handleRemoveProblem(cp.id)
+                                                }
+                                                disabled={loading}
+                                                className="text-zinc-400 hover:text-white text-xs font-semibold px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition disabled:opacity-50"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {}
+                        <div className="pt-4 border-t border-zinc-900">
+                            <h3 className="text-sm font-bold text-white mb-3">
+                                Add More Problems to Contest
+                            </h3>
+                            {loadingProblems ? (
+                                <p className="text-center py-6 text-zinc-500 text-xs">
+                                    Loading available problems...
+                                </p>
+                            ) : availableProblems.length === 0 ? (
+                                <p className="text-center py-6 text-zinc-500 text-xs bg-zinc-950 rounded-xl border border-zinc-900">
+                                    No additional problems available. Create some problems first.
+                                </p>
+                            ) : (
+                                <>
+                                    <div className="space-y-2 mb-4 max-h-96 overflow-y-auto pr-1">
+                                        {availableProblems
+                                            .filter(
+                                                (p) =>
+                                                    !contestProblems.some(
+                                                        (cp) =>
+                                                            cp.problem_id === p.id,
+                                                    ),
+                                            )
+                                            .map((problem) => (
+                                                <div
+                                                    key={problem.id}
+                                                    onClick={() => handleProblemToggle(problem.id)}
+                                                    className={`flex items-center gap-3 p-3.5 border rounded-xl transition cursor-pointer ${
+                                                        selectedProblemIds.includes(problem.id)
+                                                            ? "border-zinc-600 bg-zinc-900"
+                                                            : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
                                                     }`}
                                                 >
-                                                    {problem.is_public
-                                                        ? "Public"
-                                                        : "Private"}
-                                                </span>
-                                            </div>
-                                        ))}
-                                </div>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedProblemIds.includes(
+                                                            problem.id,
+                                                        )}
+                                                        onChange={() => {}}
+                                                        className="w-4 h-4 rounded bg-zinc-900 border-zinc-700 text-zinc-300 focus:ring-0 cursor-pointer"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold text-xs text-white">
+                                                            {problem.title}
+                                                        </p>
+                                                        <p className="text-xs text-zinc-500 font-mono mt-0.5">
+                                                            {problem.slug} •{" "}
+                                                            <span className="capitalize text-zinc-400">{problem.difficulty || "N/A"}</span>
+                                                        </p>
+                                                    </div>
+                                                    <span
+                                                        className={`text-xs px-2 py-0.5 rounded border ${
+                                                            problem.is_public
+                                                                ? "bg-zinc-900 text-zinc-300 border-zinc-800"
+                                                                : "bg-zinc-950 text-zinc-500 border-zinc-900"
+                                                        }`}
+                                                    >
+                                                        {problem.is_public
+                                                            ? "Public"
+                                                            : "Private"}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                    </div>
 
-                                <button
-                                    onClick={handleAddProblems}
-                                    disabled={
-                                        loading ||
-                                        selectedProblemIds.length === 0
-                                    }
-                                    className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading
-                                        ? "Adding..."
-                                        : `Add ${selectedProblemIds.length} Problem(s)`}
-                                </button>
-                            </>
-                        )}
+                                    <button
+                                        onClick={handleAddProblems}
+                                        disabled={
+                                            loading ||
+                                            selectedProblemIds.length === 0
+                                        }
+                                        className="w-full bg-zinc-100 hover:bg-white text-zinc-950 font-semibold py-2.5 px-4 rounded-xl shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition text-xs"
+                                    >
+                                        {loading
+                                            ? "Adding Problems..."
+                                            : `Add ${selectedProblemIds.length} Selected Problem(s)`}
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
 
 export default EditContest;
-
-function toUtcString(datetimeLocal: string): string {
-    const date = new Date(datetimeLocal);
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    const hours = String(date.getUTCHours()).padStart(2, "0");
-    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-
-    return `${year}-${month}-${day}T${hours}:${minutes}:00`;
-}
-
-function toLocalDatetimeString(utcString: string): string {
-    const date = new Date(utcString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-}

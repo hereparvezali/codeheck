@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/contexts/authcontext";
 import { ViewSubmissions, type Submission } from "../components/view_submissions";
+import { Link } from "react-router-dom";
 
 interface SubmissionsResponse {
     cursor?: number;
@@ -9,132 +9,114 @@ interface SubmissionsResponse {
 }
 
 interface ProfileSubmissionsProps {
-    onAcceptedCountUpdate?: (count: number) => void;
+    userId: number;
 }
 
-const ProfileSubmissions = ({ onAcceptedCountUpdate }: ProfileSubmissionsProps) => {
-    const navigator = useNavigate();
-    const { authfetch, user } = useAuth();
+export default function ProfileSubmissions({ userId }: ProfileSubmissionsProps) {
+    const { authfetch } = useAuth();
 
     const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [submissionsLoading, setSubmissionsLoading] = useState(false);
-    const [submissionsCursor, setSubmissionsCursor] = useState<number | undefined>(undefined);
-    const [submissionsPage, setSubmissionsPage] = useState(1);
-    const [submissionsCursors, setSubmissionsCursors] = useState<(number | undefined)[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [cursor, setCursor] = useState<number | undefined>(undefined);
+    const [page, setPage] = useState(1);
+    const [cursors, setCursors] = useState<(number | undefined)[]>([]);
 
-    useEffect(() => {
-        if (submissions.length === 0) {
-            fetchSubmissions();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const fetchSubmissions = async (cursor?: number) => {
-        if (!user) return;
-
-        setSubmissionsLoading(true);
+    const fetchSubmissions = async (c?: number) => {
+        setLoading(true);
         try {
-            const params = new URLSearchParams({ limit: "20" });
-            if (cursor) params.append("cursor", cursor.toString());
-            params.append("user_id", user.id.toString());
+            const params = new URLSearchParams({ limit: "15", user_id: userId.toString() });
+            if (c) params.append("cursor", c.toString());
 
             const res = await authfetch(`/submissions?${params.toString()}`);
-
-            if (!res.ok) {
-                if (res.status === 401) navigator("/signin");
-                throw new Error(await res.text());
-            }
-
-            const data: SubmissionsResponse = await res.json();
-            setSubmissions(data.submissions || []);
-            setSubmissionsCursor(data.cursor);
-            
-            // Update accepted count for parent component
-            if (onAcceptedCountUpdate) {
-                const acceptedCount = (data.submissions || []).filter(s => s.status === "AC").length;
-                onAcceptedCountUpdate(acceptedCount);
+            if (res.ok) {
+                const data: SubmissionsResponse = await res.json();
+                setSubmissions(data.submissions || []);
+                setCursor(data.cursor);
             }
         } catch (e) {
             console.error("Failed to fetch submissions:", e);
         } finally {
-            setSubmissionsLoading(false);
+            setLoading(false);
         }
     };
 
-    const goNextSubmissions = () => {
-        if (!submissionsCursor) return;
-        setSubmissionsPage((p) => p + 1);
-        setSubmissionsCursors((prev) => [...prev, submissionsCursor]);
-        fetchSubmissions(submissionsCursor);
+    useEffect(() => {
+        fetchSubmissions(undefined);
+
+    }, [userId]);
+
+    const goNext = () => {
+        if (!cursor) return;
+        setPage((p) => p + 1);
+        setCursors((prev) => [...prev, cursor]);
+        fetchSubmissions(cursor);
     };
 
-    const goPrevSubmissions = () => {
-        if (submissionsCursors.length === 0) return;
-        const prevCursor = submissionsCursors[submissionsCursors.length - 2];
-        setSubmissionsPage((p) => p - 1);
+    const goPrev = () => {
+        if (cursors.length === 0) return;
+        const prevCursor = cursors[cursors.length - 2];
+        setPage((p) => p - 1);
         fetchSubmissions(prevCursor);
-        setSubmissionsCursors((prev) => prev.slice(0, -1));
+        setCursors((prev) => prev.slice(0, -1));
     };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Submission History</h2>
+        <div className="space-y-4">
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="text-sm font-bold text-white">Submissions History</h3>
                 {submissions.length > 0 && (
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                         <button
-                            onClick={goPrevSubmissions}
-                            disabled={submissionsPage === 1 || submissionsLoading}
-                            className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={goPrev}
+                            disabled={page === 1 || loading}
+                            className="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-lg text-xs font-semibold disabled:opacity-40 transition"
                         >
-                            ← Previous
+                            &larr; Prev
                         </button>
-                        <span className="px-3 py-1 text-gray-600">
-                            Page {submissionsPage}
-                        </span>
+                        <span className="text-xs text-zinc-500 font-mono">Page {page}</span>
                         <button
-                            onClick={goNextSubmissions}
-                            disabled={!submissionsCursor || submissionsLoading}
-                            className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={goNext}
+                            disabled={!cursor || loading}
+                            className="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-lg text-xs font-semibold disabled:opacity-40 transition"
                         >
-                            Next →
+                            Next &rarr;
                         </button>
                     </div>
                 )}
             </div>
 
-            {submissionsLoading ? (
-                <div className="text-center py-12">
-                    <div className="animate-spin text-4xl mb-4">⏳</div>
-                    <p className="text-gray-600">Loading submissions...</p>
+            {loading ? (
+                <div className="py-16 text-center text-zinc-500 space-y-3">
+                    <div className="w-7 h-7 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs">Loading submission history...</p>
                 </div>
             ) : submissions.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg p-12 text-center">
-                    <p className="text-gray-500 text-lg mb-4">
-                        No submissions yet
-                    </p>
-                    <button
-                        onClick={() => navigator("/problems")}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                <div className="p-12 text-center bg-zinc-950 border border-zinc-900 rounded-2xl">
+                    <p className="text-sm font-semibold text-zinc-300 mb-1">No submissions yet</p>
+                    <p className="text-xs text-zinc-500 mb-4">Your submitted solutions will be tracked here with execution metrics.</p>
+                    <Link
+                        to="/problems"
+                        className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold inline-block transition shadow-sm"
                     >
-                        Submit Your First Solution
-                    </button>
+                        Browse Problemset
+                    </Link>
                 </div>
             ) : (
-                <div className="overflow-x-auto">
+                <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden shadow-lg">
                     <ViewSubmissions
                         submissions={submissions}
                         status={true}
                         id={true}
+                        problem_id={true}
+                        contest_id={true}
                         language={true}
-                        view_code={true}
+                        verdict={true}
                         time={true}
                         memory={true}
+                        view_code={true}
                     />
                 </div>
             )}
         </div>
     );
-};
-
-export default ProfileSubmissions;
+}

@@ -1,19 +1,23 @@
-pub mod create_submission;
+pub mod consumer;
 pub mod dto;
-pub mod retrieve_submission;
-pub mod retrieve_submissions;
-pub mod update_submission;
+pub mod handlers;
+pub mod service;
 
 use crate::utils::app_state::AppState;
-use axum::{Router, routing::get};
+use axum::{
+    Router,
+    routing::get,
+};
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route(
             "/submission",
-            get(retrieve_submission::retrieve)
-                .post(create_submission::create)
-                .put(update_submission::update),
+            get(handlers::retrieve)
+                .post(handlers::create)
+                .put(handlers::update),
         )
-        .route("/submissions", get(retrieve_submissions::retrieve))
+        .route("/submissions", get(handlers::retrieve_many))
+        .route("/submission/stream", get(handlers::stream_submission))
+        .route("/submission/ws", get(handlers::ws_submission))
 }

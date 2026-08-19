@@ -18,7 +18,7 @@ pub struct Model {
     pub verdict: Option<String>,
     pub time: Option<i16>,
     pub memory: Option<i16>,
-    pub submitted_at: DateTime,
+    pub submitted_at: DateTimeWithTimeZone,
     pub contest_id: Option<i64>,
 }
 

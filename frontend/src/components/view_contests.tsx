@@ -1,127 +1,6 @@
-// import { useNavigate } from "react-router-dom";
-// import type { Contest } from "../contests/contests";
-
-// interface ViewContestsProps {
-//     contests: Contest[];
-//     handleRegister?: (contest_id: number) => void;
-//     handleUnRegister?: (registration_id?: number) => void;
-//     id?: boolean;
-//     title?: boolean;
-//     slug?: boolean;
-//     description?: boolean;
-//     start_time?: boolean;
-//     end_time?: boolean;
-//     is_public?: boolean;
-//     author_id?: boolean;
-
-//     edit?: boolean;
-// }
-// export function ViewContests({
-//     contests,
-//     handleRegister,
-//     handleUnRegister,
-//     id = false,
-//     title = false,
-//     slug = false,
-//     description = false,
-//     start_time = false,
-//     end_time = false,
-//     is_public = false,
-//     author_id = false,
-
-//     edit = false,
-// }: ViewContestsProps) {
-//     const navigator = useNavigate();
-//     const getStatus = (start: string, end: string) => {
-//         const now = new Date();
-//         const startDate = new Date(start);
-//         const endDate = new Date(end);
-
-//         if (now < startDate) return { text: "Upcoming", color: "#007bff" };
-//         if (now >= startDate && now <= endDate)
-//             return { text: "Ongoing", color: "#28a745" };
-//         return { text: "Ended", color: "#dc3545" };
-//     };
-//     return (
-//         <div className="flex flex-col gap-4">
-//             {contests.map((c) => {
-//                 const status = getStatus(c.start_time, c.end_time);
-//                 return (
-//                     <div
-//                         key={c.id}
-//                         onClick={() => navigator(`/contests/${c.id}`)}
-//                         className="cursor-pointer border rounded-lg p-4 shadow transition-transform transform hover:scale-[1.01] bg-white"
-//                     >
-//                         <div className="flex justify-between items-center mb-2">
-//                             <h2 className="text-lg font-semibold">{c.title}</h2>
-//                             <span className="text-sm text-gray-500">
-//                                 #{c.id}
-//                             </span>
-
-//                             {edit && (
-//                                 <button
-//                                     onClick={(e) => {
-//                                         e.stopPropagation();
-//                                         navigator(
-//                                             `/admin/edit_contest/${c.id}`,
-//                                         );
-//                                     }}
-//                                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-//                                 >
-//                                     Edit
-//                                 </button>
-//                             )}
-//                             {handleRegister && (
-//                                 <button
-//                                     hidden={c.registration_id ? true : false}
-//                                     onClick={(e) => {
-//                                         e.stopPropagation();
-//                                         handleRegister(c.id);
-//                                     }}
-//                                     className="px-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-//                                 >
-//                                     Register
-//                                 </button>
-//                             )}
-//                             {handleUnRegister && (
-//                                 <button
-//                                     hidden={c.registration_id ? false : true}
-//                                     onClick={(e) => {
-//                                         e.stopPropagation();
-//                                         handleUnRegister(c.registration_id);
-//                                     }}
-//                                     className="px-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-//                                 >
-//                                     UnRegister
-//                                 </button>
-//                             )}
-//                         </div>
-
-//                         <p className="text-sm mb-1">
-//                             <span className="font-medium">Status:</span>{" "}
-//                             {status.text}
-//                         </p>
-//                         <p className="text-sm mb-1">
-//                             {c.is_public ? "🌐 Public" : "🔒 Private"}
-//                         </p>
-//                         {c.description && (
-//                             <p className="text-gray-700 text-sm mb-2">
-//                                 {c.description}
-//                             </p>
-//                         )}
-//                         <p className="text-xs text-gray-500">
-//                             🕒 {new Date(c.start_time).toLocaleDateString()} →{" "}
-//                             {new Date(c.start_time).toLocaleDateString()}
-//                         </p>
-//                     </div>
-//                 );
-//             })}
-//         </div>
-//     );
-// }
-
 import { useNavigate } from "react-router-dom";
 import type { Contest } from "../contests/contests";
+import { formatUtcToLocal, parseUtcDate } from "../utils/helpers";
 
 interface ViewContestsProps {
     contests: Contest[];
@@ -142,7 +21,7 @@ export function ViewContests({
     contests,
     handleRegister,
     handleUnRegister,
-    id = false,
+    id = true,
     title = true,
     slug = false,
     description = true,
@@ -152,123 +31,134 @@ export function ViewContests({
     author_id = false,
     edit = false,
 }: ViewContestsProps) {
-    const navigator = useNavigate();
+    const navigate = useNavigate();
 
     const getStatus = (start: string, end: string) => {
         const now = new Date();
-        const startDate = new Date(start);
-        const endDate = new Date(end);
+        const startDate = parseUtcDate(start);
+        const endDate = parseUtcDate(end);
 
-        if (now < startDate) return { text: "Upcoming", color: "text-blue-600" };
+        if (now < startDate)
+            return {
+                text: "Upcoming",
+                badgeClass: "bg-zinc-900 text-zinc-300 border-zinc-800",
+            };
         if (now >= startDate && now <= endDate)
-            return { text: "Ongoing", color: "text-green-600" };
-        return { text: "Ended", color: "text-red-600" };
+            return {
+                text: "● Live Now",
+                badgeClass: "bg-zinc-800 text-white border-zinc-600 font-semibold",
+            };
+        return {
+            text: "Finished",
+            badgeClass: "bg-zinc-950 text-zinc-600 border-zinc-900",
+        };
     };
 
+    if (contests.length === 0) {
+        return (
+            <div className="text-center text-zinc-500 py-16 bg-zinc-950 border border-zinc-900 rounded-2xl">
+                <p className="text-base font-semibold text-zinc-400">No contests available</p>
+                <p className="text-sm text-zinc-500 mt-1">Check back later for newly scheduled competitive events.</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex flex-col gap-4">
-            {contests.length === 0 ? (
-                <p className="text-center text-gray-500 text-sm">
-                    No contests available.
-                </p>
-            ) : (
-                contests.map((c) => {
-                    const status = getStatus(c.start_time, c.end_time);
-                    return (
-                        <div
-                            key={c.id}
-                            onClick={() => navigator(`/contests/${c.id}`)}
-                            className="cursor-pointer border rounded-lg p-4 shadow transition-transform transform hover:scale-[1.01] bg-white"
-                        >
-                            <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+        <div className="grid grid-cols-1 gap-3.5">
+            {contests.map((c) => {
+                const status = getStatus(c.start_time, c.end_time);
+                return (
+                    <div
+                        key={c.id}
+                        onClick={() => navigate(`/contests/${c.id}`)}
+                        className="p-5 bg-zinc-950 border border-zinc-900 hover:border-zinc-800 rounded-2xl transition cursor-pointer group"
+                    >
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2.5">
+                            <div className="flex items-center gap-3">
+                                {id && <span className="text-xs font-mono text-zinc-500">#{c.id}</span>}
                                 {title && (
-                                    <h2 className="text-lg font-semibold text-blue-600 hover:underline">
+                                    <h3 className="text-lg font-bold text-zinc-100 group-hover:text-white transition">
                                         {c.title}
-                                    </h2>
+                                    </h3>
                                 )}
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs border ${status.badgeClass}`}>
+                                    {status.text}
+                                </span>
+                            </div>
 
-                                {id && (
-                                    <span className="text-sm text-gray-500">
-                                        #{c.id}
-                                    </span>
-                                )}
-
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                 {edit && (
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigator(`/admin/edit_contest/${c.id}`);
-                                        }}
-                                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                        onClick={() => navigate(`/admin/edit_contest/${c.id}`)}
+                                        className="px-3 py-1 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-lg border border-zinc-800 transition"
                                     >
                                         Edit
                                     </button>
                                 )}
 
-                                {handleRegister && !c.registration_id && (
+                                {status.text === "Finished" ? (
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRegister(c.id);
-                                        }}
-                                        className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                        disabled
+                                        className="px-4 py-1.5 bg-zinc-900 text-zinc-600 rounded-xl text-xs font-semibold border border-zinc-800/50 cursor-not-allowed"
                                     >
-                                        Register
+                                        Ended
                                     </button>
-                                )}
+                                ) : (
+                                    <>
+                                        {handleRegister && !c.registration_id && (
+                                            <button
+                                                onClick={() => handleRegister(c.id)}
+                                                className="px-4 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition shadow-sm"
+                                            >
+                                                Register
+                                            </button>
+                                        )}
 
-                                {handleUnRegister && c.registration_id && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleUnRegister(c.registration_id);
-                                        }}
-                                        className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                                    >
-                                        Unregister
-                                    </button>
+                                        {handleUnRegister && c.registration_id && (
+                                            <button
+                                                onClick={() => handleUnRegister(c.registration_id)}
+                                                className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-xl text-xs font-semibold transition"
+                                            >
+                                                Unregister
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
-
-                            {slug && (
-                                <p className="text-sm text-gray-500 mb-1">
-                                    Slug: {c.slug}
-                                </p>
-                            )}
-
-                            {description && c.description && (
-                                <p className="text-gray-700 text-sm mb-2 line-clamp-3">
-                                    {c.description}
-                                </p>
-                            )}
-
-                            {is_public && (
-                                <p className="text-sm mb-1">
-                                    {c.is_public ? "🌐 Public" : "🔒 Private"}
-                                </p>
-                            )}
-
-                            <p className={`text-sm mb-1 font-medium ${status.color}`}>
-                                Status: {status.text}
-                            </p>
-
-                            {(start_time || end_time) && (
-                                <p className="text-xs text-gray-500">
-                                    🕒 {start_time && new Date(c.start_time).toLocaleString()}{" "}
-                                    →{" "}
-                                    {end_time && new Date(c.end_time).toLocaleString()}
-                                </p>
-                            )}
-
-                            {author_id && (
-                                <p className="text-xs text-gray-400 mt-1">
-                                    Author ID: {c.author_id}
-                                </p>
-                            )}
                         </div>
-                    );
-                })
-            )}
+
+                        {slug && <p className="text-xs font-mono text-zinc-500 mb-2">{c.slug}</p>}
+
+                        {description && c.description && (
+                            <p className="text-sm text-zinc-400 line-clamp-2 mb-3 leading-relaxed">
+                                {c.description}
+                            </p>
+                        )}
+
+                        <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-zinc-500 border-t border-zinc-900 pt-3">
+                            {(start_time || end_time) && (
+                                <div className="flex items-center gap-1.5 font-mono">
+                                    <span>🕒</span>
+                                    <span>{start_time && formatUtcToLocal(c.start_time)}</span>
+                                    <span>&rarr;</span>
+                                    <span>{end_time && formatUtcToLocal(c.end_time)}</span>
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-3">
+                                {is_public && (
+                                    <span className={`text-xs px-2 py-0.5 rounded border ${c.is_public ? "text-zinc-300 bg-zinc-900 border-zinc-800" : "text-zinc-500 bg-zinc-950 border-zinc-900"}`}>
+                                        {c.is_public ? "Public" : "Private"}
+                                    </span>
+                                )}
+                                {author_id && c.author_id && (
+                                    <span className="text-zinc-500">Author: #{c.author_id}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
         </div>
     );
 }

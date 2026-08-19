@@ -1,20 +1,64 @@
 export const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
         case "AC":
-            return "text-green-700 bg-green-100";
+        case "ACCEPTED":
+            return "text-zinc-100 bg-zinc-800 border border-zinc-600 font-medium";
         case "WA":
-            return "text-red-700 bg-red-100";
+        case "WRONG ANSWER":
+            return "text-zinc-300 bg-zinc-900 border border-zinc-800";
         case "TLE":
-            return "text-yellow-700 bg-yellow-100";
+        case "TIME LIMIT EXCEEDED":
+            return "text-zinc-300 bg-zinc-900 border border-zinc-800";
         case "MLE":
-            return "text-orange-700 bg-orange-100";
+        case "MEMORY LIMIT EXCEEDED":
+            return "text-zinc-300 bg-zinc-900 border border-zinc-800";
+        case "RE":
+        case "RUNTIME ERROR":
         case "RE/CE":
-            return "text-purple-700 bg-purple-100";
         case "CE/RE":
-            return "text-purple-700 bg-purple-100";
+        case "CE":
+        case "COMPILATION ERROR":
+            return "text-zinc-400 bg-zinc-900 border border-zinc-800";
         case "PENDING":
-            return "text-blue-700 bg-blue-100 animate-pulse";
+        case "RUNNING":
+        case "IN QUEUE":
+            return "text-zinc-300 bg-zinc-900 border border-zinc-700 animate-pulse";
         default:
-            return "text-gray-700 bg-gray-100";
+            return "text-zinc-400 bg-zinc-900 border border-zinc-800";
     }
 };
+
+
+export function parseUtcDate(dateStr?: string | null): Date {
+    if (!dateStr) return new Date();
+    const normalized = dateStr.endsWith("Z") || dateStr.includes("+") ? dateStr : `${dateStr}Z`;
+    return new Date(normalized);
+}
+
+
+export function formatUtcToLocal(dateStr?: string | null): string {
+    if (!dateStr) return "";
+    return parseUtcDate(dateStr).toLocaleString();
+}
+
+
+export function toUtcIsoString(datetimeLocal: string): string {
+    if (!datetimeLocal) return "";
+    const date = new Date(datetimeLocal);
+    return date.toISOString();
+}
+
+
+export function toLocalDatetimeInput(utcString: string): string {
+    if (!utcString) return "";
+    const date = parseUtcDate(utcString);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+

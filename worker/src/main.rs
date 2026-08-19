@@ -1,61 +1,82 @@
-mod docker;
-mod language;
+mod consumer;
+mod error;
+mod languages;
 mod models;
-mod queue;
+mod pipeline;
+mod sandbox;
 
-use crate::queue::handle;
-use futures_util::StreamExt as _;
 use std::sync::Arc;
+use futures_util::StreamExt as _;
 use tokio::{
     fs,
     sync::{Mutex, Semaphore},
 };
+use tracing_subscriber::{EnvFilter, fmt};
+
+use crate::{
+    consumer::QueueConsumer,
+    error::WorkerError,
+    sandbox::DockerSandbox,
+};
 
 #[tokio::main]
-async fn main() {
-    // Build Docker images
-    if let Err(e) = docker::build_images().await {
-        println!("Failed to build Docker images: {:?}", e);
+async fn main() -> Result<(), WorkerError> {
+
+    fmt()
+        .with_env_filter(
+            EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| EnvFilter::new("worker=info,info")),
+        )
+        .with_target(false)
+        .with_thread_ids(true)
+        .with_file(true)
+        .with_line_number(true)
+        .init();
+
+    tracing::info!("=== CodeHeck Judge Engine Worker Starting ===");
+
+
+    if let Err(e) = DockerSandbox::build_compiler_images().await {
+        tracing::warn!("Docker images build report: {:?}", e);
     }
 
-    // Setup RabbitMQ
-    let (api, _, mut consumer) = match queue::setup_rabbitmq().await {
-        Ok(result) => result,
-        Err(e) => {
-            println!("Failed to setup RabbitMQ: {:?}", e);
-            return;
-        }
-    };
 
-    // Ensure /tmp/codebox exists
-    if !fs::try_exists("/tmp/codebox").await.unwrap() {
-        fs::create_dir("/tmp/codebox").await.unwrap();
+    if !fs::try_exists("/tmp/codebox").await.unwrap_or(false) {
+        fs::create_dir_all("/tmp/codebox").await?;
     }
 
-    // Semaphore for spawning not more than core_count tast and core count for dedicating containers per core
-    let cpus = num_cpus::get() - 1; // skipped 1 core for relaxation
+
+    let (channel, mut consumer) = QueueConsumer::setup_rabbitmq().await?;
+
+    let cpus = (num_cpus::get().saturating_sub(1)).max(1);
     let semaphore = Arc::new(Semaphore::new(cpus));
-    let core_counter = Arc::new(Mutex::new(0)); // Core pool
+    let core_counter = Arc::new(Mutex::new(0));
 
-    // Process messages from the queue
+    tracing::info!(
+        slots = cpus,
+        queue = "outgoing",
+        "CodeHeck Judge Worker ready. Listening for submissions on 'outgoing' queue..."
+    );
+
+
     while let Some(Ok(delivery)) = consumer.next().await {
-        let api = api.clone();
-        let semaphore = semaphore.clone();
+        let ch = channel.clone();
+        let sem = semaphore.clone();
 
-        // extra scopping for unlock the mutex
         let core_id = {
             let mut counter = core_counter.lock().await;
             let id = *counter;
-            *counter = (*counter + 1) % cpus; // round-robin assignment
+            *counter = (*counter + 1) % cpus;
             id
         };
 
-        // spawnning at most number of cores task
         tokio::spawn(async move {
-            let _permit = semaphore.acquire().await.unwrap();
-            if let Err(e) = handle(delivery, api, core_id).await {
-                println!("Error handling delivery: {:?}", e);
+            let _permit = sem.acquire().await.unwrap();
+            if let Err(e) = QueueConsumer::handle_delivery(delivery, ch, core_id).await {
+                tracing::error!(core_id, error = ?e, "Delivery processing failed");
             }
         });
     }
+
+    Ok(())
 }

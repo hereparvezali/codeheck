@@ -23,7 +23,7 @@ pub struct Model {
     pub memory_limit: i16,
     pub difficulty: Option<String>,
     pub is_public: bool,
-    pub created_at: DateTime,
+    pub created_at: DateTimeWithTimeZone,
     pub author_id: Option<i64>,
 }
 
