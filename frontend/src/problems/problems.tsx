@@ -122,19 +122,28 @@ export default function Problems() {
                     </form>
 
                     <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-xl">
-                        {(["all", "Easy", "Medium", "Hard"] as const).map((diff) => (
-                            <button
-                                key={diff}
-                                onClick={() => setSelectedDifficulty(diff)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition ${
-                                    selectedDifficulty === diff
-                                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
-                                        : "text-zinc-400 hover:text-zinc-200"
-                                }`}
-                            >
-                                {diff}
-                            </button>
-                        ))}
+                        {(["all", "Easy", "Medium", "Hard"] as const).map((diff) => {
+                            const isSelected = selectedDifficulty === diff;
+                            let activeClass = "bg-zinc-800 text-white shadow-sm border border-zinc-700";
+                            if (isSelected) {
+                                if (diff === "Easy") activeClass = "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+                                else if (diff === "Medium") activeClass = "bg-amber-500/15 text-amber-300 border border-amber-500/30";
+                                else if (diff === "Hard") activeClass = "bg-rose-500/15 text-rose-300 border border-rose-500/30";
+                            }
+                            return (
+                                <button
+                                    key={diff}
+                                    onClick={() => setSelectedDifficulty(diff)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition ${
+                                        isSelected
+                                            ? activeClass
+                                            : "text-zinc-400 hover:text-zinc-200"
+                                    }`}
+                                >
+                                    {diff}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 

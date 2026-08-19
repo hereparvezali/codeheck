@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { Problem } from "../problems/problems";
-import { getStatusColor, parseUtcDate } from "../utils/helpers";
+import { getDifficultyColor, getStatusColor, parseUtcDate } from "../utils/helpers";
 
 interface ViewProblemsProps {
     problems: Problem[];
@@ -12,12 +12,6 @@ interface ViewProblemsProps {
     edit?: boolean;
     status?: boolean;
 }
-
-const difficultyColors: Record<string, string> = {
-    easy: "bg-zinc-900 text-zinc-300 border-zinc-800",
-    medium: "bg-zinc-800 text-zinc-200 border-zinc-700 font-medium",
-    hard: "bg-zinc-700 text-white border-zinc-600 font-semibold",
-};
 
 export function ViewProblems({
     problems,
@@ -68,10 +62,9 @@ export function ViewProblems({
                                 <td className="p-4">
                                     {p.difficulty ? (
                                         <span
-                                            className={`px-2.5 py-0.5 rounded-md text-xs border ${
-                                                difficultyColors[p.difficulty.toLowerCase()] ||
-                                                "bg-zinc-900 text-zinc-300 border-zinc-800"
-                                            }`}
+                                            className={`px-2.5 py-0.5 rounded-md text-xs capitalize ${getDifficultyColor(
+                                                p.difficulty
+                                            )}`}
                                         >
                                             {p.difficulty}
                                         </span>

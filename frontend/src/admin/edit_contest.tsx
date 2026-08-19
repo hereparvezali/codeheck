@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../utils/contexts/authcontext";
 import { useNavigate, useParams } from "react-router-dom";
-import { toLocalDatetimeInput, toUtcIsoString } from "../utils/helpers";
+import { getDifficultyColor, toLocalDatetimeInput, toUtcIsoString } from "../utils/helpers";
 
 interface UpdateContestPayload {
     title?: string;
@@ -510,7 +510,9 @@ const EditContest = () => {
                                                 </p>
                                                 <p className="text-xs text-zinc-500 font-mono mt-0.5">
                                                     {cp.slug || cp.problem?.slug} •{" "}
-                                                    <span className="capitalize text-zinc-400">{cp.difficulty || cp.problem?.difficulty || "N/A"}</span>
+                                                    <span className={`capitalize px-2 py-0.5 rounded text-[11px] ${getDifficultyColor(cp.difficulty || cp.problem?.difficulty)}`}>
+                                                        {cp.difficulty || cp.problem?.difficulty || "N/A"}
+                                                    </span>
                                                     {cp.label && (
                                                         <span className="ml-2 px-1.5 py-0.5 bg-zinc-800 text-zinc-200 border border-zinc-700 rounded text-[11px] font-bold font-mono">
                                                             {cp.label}
@@ -581,7 +583,9 @@ const EditContest = () => {
                                                         </p>
                                                         <p className="text-xs text-zinc-500 font-mono mt-0.5">
                                                             {problem.slug} •{" "}
-                                                            <span className="capitalize text-zinc-400">{problem.difficulty || "N/A"}</span>
+                                                            <span className={`capitalize px-2 py-0.5 rounded text-[11px] ${getDifficultyColor(problem.difficulty)}`}>
+                                                                {problem.difficulty || "N/A"}
+                                                            </span>
                                                         </p>
                                                     </div>
                                                     <span

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../utils/contexts/authcontext";
 import { useNavigate } from "react-router-dom";
-import { toUtcIsoString } from "../utils/helpers";
+import { getDifficultyColor, toUtcIsoString } from "../utils/helpers";
 
 interface CreateContestPayload {
     title: string;
@@ -332,13 +332,9 @@ const CreateContest = () => {
                                                             <p className="text-xs text-zinc-500 font-mono mt-0.5">{problem.slug}</p>
                                                         </div>
                                                         <span
-                                                            className={`text-xs px-2.5 py-0.5 rounded border ${
-                                                                problem.difficulty === "easy"
-                                                                    ? "bg-zinc-900 text-zinc-300 border-zinc-800"
-                                                                    : problem.difficulty === "medium"
-                                                                    ? "bg-zinc-800 text-zinc-200 border-zinc-700 font-medium"
-                                                                    : "bg-zinc-700 text-white border-zinc-600 font-semibold"
-                                                            }`}
+                                                            className={`text-xs px-2.5 py-0.5 rounded capitalize ${getDifficultyColor(
+                                                                problem.difficulty
+                                                            )}`}
                                                         >
                                                             {problem.difficulty || "N/A"}
                                                         </span>

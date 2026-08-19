@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../utils/contexts/authcontext";
-import { formatUtcToLocal, parseUtcDate } from "../utils/helpers";
+import { formatUtcToLocal, getContestStatusColor, getDifficultyColor, parseUtcDate } from "../utils/helpers";
 
 interface LeaderboardEntry {
     user_id: number;
@@ -280,13 +280,9 @@ export default function ContestDetail() {
                                 <span className="font-mono text-xs text-zinc-500">#{contest.id}</span>
                                 <h1 className="text-2xl sm:text-3xl font-extrabold text-white">{contest.title}</h1>
                                 <span
-                                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                                        timeLeft.status === "ongoing"
-                                            ? "bg-zinc-800 text-white border-zinc-600"
-                                            : timeLeft.status === "upcoming"
-                                            ? "bg-zinc-900 text-zinc-300 border-zinc-800"
-                                            : "bg-zinc-950 text-zinc-600 border-zinc-900"
-                                    }`}
+                                    className={`px-3 py-1 rounded-full text-xs font-semibold border ${getContestStatusColor(
+                                        timeLeft.status
+                                    )}`}
                                 >
                                     {timeLeft.text}
                                 </span>
@@ -463,13 +459,9 @@ export default function ContestDetail() {
 
                                             <div className="flex items-center gap-4">
                                                 <span
-                                                    className={`px-2.5 py-0.5 rounded-md text-xs border ${
-                                                        p.difficulty?.toLowerCase() === "easy"
-                                                            ? "bg-zinc-900 text-zinc-300 border-zinc-800"
-                                                            : p.difficulty?.toLowerCase() === "medium"
-                                                            ? "bg-zinc-800 text-zinc-200 border-zinc-700 font-medium"
-                                                            : "bg-zinc-700 text-white border-zinc-600 font-semibold"
-                                                    }`}
+                                                    className={`px-2.5 py-0.5 rounded-md text-xs capitalize ${getDifficultyColor(
+                                                        p.difficulty
+                                                    )}`}
                                                 >
                                                     {p.difficulty || "Unrated"}
                                                 </span>
@@ -486,7 +478,7 @@ export default function ContestDetail() {
                 {activeTab === "leaderboard" && (
                     <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden shadow-lg">
                         {leaderboard.length === 0 ? (
-                            <div className="p-16 text-center text-zinc-500">
+                            <div className="p-16 text-center text-zinc-500 space-y-1">
                                 <p className="text-base font-semibold text-zinc-400">No submissions recorded</p>
                             </div>
                         ) : (
@@ -511,21 +503,38 @@ export default function ContestDetail() {
                                             return (
                                                 <tr
                                                     key={entry.user_id}
-                                                    className={`transition ${isMe ? "bg-zinc-900/80 font-medium" : "hover:bg-zinc-900/40"}`}
+                                                    className={`transition ${
+                                                        isMe
+                                                            ? "bg-sky-500/5 hover:bg-sky-500/10 border-l-2 border-sky-400"
+                                                            : "hover:bg-zinc-900/40"
+                                                    }`}
                                                 >
                                                     <td className="p-3.5 text-center font-mono font-bold text-zinc-400 text-xs">
-                                                        {index + 1}
+                                                        {index === 0 ? (
+                                                            <span className="text-amber-300 font-bold">🥇 1</span>
+                                                        ) : index === 1 ? (
+                                                            <span className="text-zinc-300 font-bold">🥈 2</span>
+                                                        ) : index === 2 ? (
+                                                            <span className="text-amber-600 font-bold">🥉 3</span>
+                                                        ) : (
+                                                            index + 1
+                                                        )}
                                                     </td>
                                                     <td className="p-3.5">
                                                         <Link
                                                             to={`/profile/${entry.username}`}
-                                                            className="text-zinc-200 hover:text-white transition font-medium text-xs"
+                                                            className="text-zinc-200 hover:text-white transition font-medium text-xs flex items-center gap-1.5"
                                                         >
-                                                            {entry.username} {isMe && "(You)"}
+                                                            <span>{entry.username}</span>
+                                                            {isMe && (
+                                                                <span className="text-[10px] px-1.5 py-0.2 bg-sky-500/20 text-sky-300 rounded font-semibold">
+                                                                    You
+                                                                </span>
+                                                            )}
                                                         </Link>
                                                     </td>
                                                     <td className="p-3.5 text-center">
-                                                        <span className="px-2.5 py-0.5 bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-md font-bold text-xs">
+                                                        <span className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-md font-bold text-xs">
                                                             {entry.solved}
                                                         </span>
                                                     </td>
@@ -538,16 +547,16 @@ export default function ContestDetail() {
                                                             <td key={p.id} className="p-3.5 text-center font-mono text-xs">
                                                                 {status ? (
                                                                     status.solved ? (
-                                                                        <div className="text-zinc-100 font-bold bg-zinc-800 border border-zinc-700 rounded py-1">
+                                                                        <div className="text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 rounded py-1">
                                                                             +{status.attempts}
                                                                             {status.time !== null && (
-                                                                                <span className="block text-[10px] text-zinc-400 font-normal">
+                                                                                <span className="block text-[10px] text-emerald-400/70 font-normal">
                                                                                     {Math.floor(status.time / 60)}m
                                                                                 </span>
                                                                             )}
                                                                         </div>
                                                                     ) : (
-                                                                        <div className="text-zinc-400 bg-zinc-900 border border-zinc-800 rounded py-1">
+                                                                        <div className="text-rose-400 bg-rose-500/10 border border-rose-500/30 rounded py-1 font-medium">
                                                                             -{status.attempts}
                                                                         </div>
                                                                     )
@@ -570,4 +579,3 @@ export default function ContestDetail() {
         </div>
     );
 }
-

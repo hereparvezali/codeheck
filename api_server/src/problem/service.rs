@@ -321,7 +321,7 @@ impl ProblemService {
             .ok_or_else(|| AppError::not_found("Problem not found"))?;
 
         if problem.author_id != Some(author_id) {
-            return Err(AppError::auth("You are not the author of this problem"));
+            return Err(AppError::forbidden("You are not the author of this problem"));
         }
 
         let count = payload.cases.len();
@@ -379,7 +379,7 @@ impl ProblemService {
             .ok_or_else(|| AppError::not_found("Problem not found"))?;
 
         if problem.author_id != Some(author_id) {
-            return Err(AppError::auth("You are not the author of this problem"));
+            return Err(AppError::forbidden("You are not the author of this problem"));
         }
 
         let res = testcases::Entity::delete_many()

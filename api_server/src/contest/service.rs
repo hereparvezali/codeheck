@@ -326,7 +326,7 @@ impl ContestService {
             .ok_or_else(|| AppError::not_found("Contest not found"))?;
 
         if contest.author_id != Some(author_id) {
-            return Err(AppError::auth("You are not the author of this contest"));
+            return Err(AppError::forbidden("You are not the author of this contest"));
         }
 
 
@@ -348,7 +348,7 @@ impl ContestService {
         let valid_pids: std::collections::HashSet<i64> = valid_problems.into_iter().map(|p| p.id).collect();
         for pid in &requested_pids {
             if !valid_pids.contains(pid) {
-                return Err(AppError::auth(format!(
+                return Err(AppError::forbidden(format!(
                     "Problem ID {} is private and not authored by you",
                     pid
                 )));
@@ -407,13 +407,13 @@ impl ContestService {
         if !is_author {
             let now = chrono::Utc::now();
             if now < contest.start_time {
-                return Err(AppError::auth(
+                return Err(AppError::forbidden(
                     "Contest has not started yet. Problems will be visible once the contest begins.",
                 ));
             }
 
             let uid = user_id.ok_or_else(|| {
-                AppError::auth("You must be registered for this contest to view problems")
+                AppError::forbidden("You must be registered for this contest to view problems")
             })?;
 
             let is_registered = contest_registrations::Entity::find()
@@ -428,7 +428,7 @@ impl ContestService {
                 .is_some();
 
             if !is_registered {
-                return Err(AppError::auth(
+                return Err(AppError::forbidden(
                     "You must be registered for this contest to view problems",
                 ));
             }
@@ -466,7 +466,7 @@ impl ContestService {
             .ok_or_else(|| AppError::not_found("Contest not found"))?;
 
         if contest.author_id != Some(author_id) {
-            return Err(AppError::auth("You are not the author of this contest"));
+            return Err(AppError::forbidden("You are not the author of this contest"));
         }
 
         let res = contest_problems::Entity::delete_many()
@@ -582,7 +582,7 @@ impl ContestService {
             let is_author = user_id.is_some() && contest.author_id == user_id;
             if !is_author {
                 let uid = user_id.ok_or_else(|| {
-                    AppError::auth("You must be registered to view this private contest's leaderboard")
+                    AppError::forbidden("You must be registered to view this private contest's leaderboard")
                 })?;
 
                 let is_reg = contest_registrations::Entity::find()
@@ -597,7 +597,7 @@ impl ContestService {
                     .is_some();
 
                 if !is_reg {
-                    return Err(AppError::auth(
+                    return Err(AppError::forbidden(
                         "You must be registered to view this private contest's leaderboard",
                     ));
                 }

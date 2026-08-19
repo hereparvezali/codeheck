@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../utils/contexts/authcontext";
-import { formatUtcToLocal, getStatusColor, parseUtcDate } from "../utils/helpers";
+import { formatUtcToLocal, getContestStatusColor, getDifficultyColor, getStatusColor, parseUtcDate } from "../utils/helpers";
 import type { Problem } from "../problems/problems";
 import type { Contest } from "../contests/contests";
 
@@ -36,14 +36,6 @@ export default function Home() {
 
         loadHomeData();
     }, [authfetch]);
-
-    const difficultyBadge = (diff?: string) => {
-        const d = diff?.toLowerCase();
-        if (d === "easy") return "bg-zinc-900 text-zinc-300 border-zinc-800";
-        if (d === "medium") return "bg-zinc-800 text-zinc-200 border-zinc-700 font-medium";
-        if (d === "hard") return "bg-zinc-700 text-white border-zinc-600 font-semibold";
-        return "bg-zinc-900 text-zinc-400 border-zinc-800";
-    };
 
     return (
         <div className="min-h-screen bg-black text-zinc-100 flex flex-col justify-between">
@@ -120,7 +112,7 @@ export default function Home() {
                                                 </span>
                                             )}
                                             <span
-                                                className={`px-2 py-0.5 text-[11px] rounded border ${difficultyBadge(
+                                                className={`px-2 py-0.5 text-[11px] rounded capitalize ${getDifficultyColor(
                                                     prob.difficulty
                                                 )}`}
                                             >
@@ -159,6 +151,11 @@ export default function Home() {
                                     const end = parseUtcDate(c.end_time);
                                     const isOngoing = now >= start && now <= end;
                                     const isUpcoming = now < start;
+                                    const statusKey: "ongoing" | "upcoming" | "past" = isOngoing
+                                        ? "ongoing"
+                                        : isUpcoming
+                                        ? "upcoming"
+                                        : "past";
 
                                     return (
                                         <Link
@@ -171,15 +168,11 @@ export default function Home() {
                                                     {c.title}
                                                 </h3>
                                                 <span
-                                                    className={`px-2 py-0.5 text-[11px] rounded border shrink-0 ${
-                                                        isOngoing
-                                                            ? "bg-zinc-800 text-white border-zinc-600 font-semibold"
-                                                            : isUpcoming
-                                                            ? "bg-zinc-900 text-zinc-300 border-zinc-800"
-                                                            : "bg-zinc-950 text-zinc-600 border-zinc-900"
-                                                    }`}
+                                                    className={`px-2 py-0.5 text-[11px] rounded border shrink-0 ${getContestStatusColor(
+                                                        statusKey
+                                                    )}`}
                                                 >
-                                                    {isOngoing ? "Live" : isUpcoming ? "Upcoming" : "Ended"}
+                                                    {isOngoing ? "● Live" : isUpcoming ? "Upcoming" : "Ended"}
                                                 </span>
                                             </div>
                                             <div className="text-[11px] text-zinc-500 font-mono">

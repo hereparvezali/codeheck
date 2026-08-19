@@ -41,16 +41,16 @@ export function ViewContests({
         if (now < startDate)
             return {
                 text: "Upcoming",
-                badgeClass: "bg-zinc-900 text-zinc-300 border-zinc-800",
+                badgeClass: "bg-sky-500/10 text-sky-400 border-sky-500/25",
             };
         if (now >= startDate && now <= endDate)
             return {
                 text: "● Live Now",
-                badgeClass: "bg-zinc-800 text-white border-zinc-600 font-semibold",
+                badgeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-semibold",
             };
         return {
             text: "Finished",
-            badgeClass: "bg-zinc-950 text-zinc-600 border-zinc-900",
+            badgeClass: "bg-zinc-900/60 text-zinc-500 border-zinc-800/80",
         };
     };
 

@@ -2,31 +2,65 @@ export const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
         case "AC":
         case "ACCEPTED":
-            return "text-zinc-100 bg-zinc-800 border border-zinc-600 font-medium";
+            return "text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 font-medium";
         case "WA":
         case "WRONG ANSWER":
-            return "text-zinc-300 bg-zinc-900 border border-zinc-800";
+            return "text-rose-400 bg-rose-500/10 border border-rose-500/25 font-medium";
         case "TLE":
         case "TIME LIMIT EXCEEDED":
-            return "text-zinc-300 bg-zinc-900 border border-zinc-800";
+            return "text-amber-400 bg-amber-500/10 border border-amber-500/25 font-medium";
         case "MLE":
         case "MEMORY LIMIT EXCEEDED":
-            return "text-zinc-300 bg-zinc-900 border border-zinc-800";
+            return "text-purple-400 bg-purple-500/10 border border-purple-500/25 font-medium";
         case "RE":
         case "RUNTIME ERROR":
-        case "RE/CE":
-        case "CE/RE":
+        case "SIGSEGV":
+        case "SIGXFSZ":
+        case "SIGFPE":
+        case "SIGABRT":
+        case "RTE":
+            return "text-orange-400 bg-orange-500/10 border border-orange-500/25 font-medium";
         case "CE":
         case "COMPILATION ERROR":
-            return "text-zinc-400 bg-zinc-900 border border-zinc-800";
+        case "RE/CE":
+        case "CE/RE":
+            return "text-yellow-400 bg-yellow-500/10 border border-yellow-500/25 font-medium";
         case "PENDING":
         case "RUNNING":
         case "IN QUEUE":
-            return "text-zinc-300 bg-zinc-900 border border-zinc-700 animate-pulse";
+        case "JUDGING":
+            return "text-sky-400 bg-sky-500/10 border border-sky-500/25 animate-pulse font-medium";
         default:
             return "text-zinc-400 bg-zinc-900 border border-zinc-800";
     }
 };
+
+export const getDifficultyColor = (diff?: string) => {
+    switch (diff?.toLowerCase()) {
+        case "easy":
+            return "text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 font-medium";
+        case "medium":
+            return "text-amber-400 bg-amber-500/10 border border-amber-500/25 font-medium";
+        case "hard":
+            return "text-rose-400 bg-rose-500/10 border border-rose-500/25 font-medium";
+        default:
+            return "text-zinc-400 bg-zinc-900 border border-zinc-800";
+    }
+};
+
+export const getContestStatusColor = (status: "ongoing" | "upcoming" | "past" | "ended") => {
+    switch (status) {
+        case "ongoing":
+            return "text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 font-semibold";
+        case "upcoming":
+            return "text-sky-400 bg-sky-500/10 border border-sky-500/25 font-medium";
+        case "past":
+        case "ended":
+        default:
+            return "text-zinc-500 bg-zinc-900/60 border border-zinc-800/80";
+    }
+};
+
 
 
 export function parseUtcDate(dateStr?: string | null): Date {

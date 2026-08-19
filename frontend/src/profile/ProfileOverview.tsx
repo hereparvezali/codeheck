@@ -53,14 +53,14 @@ export default function ProfileOverview({ stats }: ProfileOverviewProps) {
             <div className="p-6 bg-zinc-950 border border-zinc-900 rounded-2xl">
                 <h3 className="text-sm font-bold text-white mb-4">Solved Problems by Difficulty</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+                    <div className="p-4 bg-zinc-900/60 border border-emerald-500/20 rounded-xl">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-medium text-zinc-400 uppercase">Easy</span>
+                            <span className="text-xs font-semibold text-emerald-400 uppercase">Easy</span>
                             <span className="text-base font-bold text-white">{stats.easy_solved}</span>
                         </div>
                         <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-zinc-400"
+                                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                                 style={{
                                     width: `${stats.total_solved > 0 ? (stats.easy_solved / stats.total_solved) * 100 : 0}%`,
                                 }}
@@ -68,14 +68,14 @@ export default function ProfileOverview({ stats }: ProfileOverviewProps) {
                         </div>
                     </div>
 
-                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+                    <div className="p-4 bg-zinc-900/60 border border-amber-500/20 rounded-xl">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-medium text-zinc-400 uppercase">Medium</span>
+                            <span className="text-xs font-semibold text-amber-400 uppercase">Medium</span>
                             <span className="text-base font-bold text-white">{stats.medium_solved}</span>
                         </div>
                         <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-zinc-400"
+                                className="h-full bg-amber-500 rounded-full transition-all duration-500"
                                 style={{
                                     width: `${stats.total_solved > 0 ? (stats.medium_solved / stats.total_solved) * 100 : 0}%`,
                                 }}
@@ -83,14 +83,14 @@ export default function ProfileOverview({ stats }: ProfileOverviewProps) {
                         </div>
                     </div>
 
-                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+                    <div className="p-4 bg-zinc-900/60 border border-rose-500/20 rounded-xl">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-medium text-zinc-400 uppercase">Hard</span>
+                            <span className="text-xs font-semibold text-rose-400 uppercase">Hard</span>
                             <span className="text-base font-bold text-white">{stats.hard_solved}</span>
                         </div>
                         <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-zinc-400"
+                                className="h-full bg-rose-500 rounded-full transition-all duration-500"
                                 style={{
                                     width: `${stats.total_solved > 0 ? (stats.hard_solved / stats.total_solved) * 100 : 0}%`,
                                 }}

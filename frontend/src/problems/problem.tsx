@@ -2,7 +2,7 @@ import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom"
 import { useAuth } from "../utils/contexts/authcontext";
 import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
-import { getStatusColor } from "../utils/helpers";
+import { getDifficultyColor, getStatusColor } from "../utils/helpers";
 import { ViewSubmissions, type Submission } from "../components/view_submissions";
 
 export interface ProblemPayload {
@@ -368,13 +368,9 @@ export default function Problem() {
                                     </div>
                                     <div className="flex items-center gap-3 text-xs">
                                         <span
-                                            className={`px-2.5 py-0.5 rounded-md border text-xs ${
-                                                problem.difficulty?.toLowerCase() === "easy"
-                                                    ? "bg-zinc-900 text-zinc-300 border-zinc-800"
-                                                    : problem.difficulty?.toLowerCase() === "medium"
-                                                    ? "bg-zinc-800 text-zinc-200 border-zinc-700 font-medium"
-                                                    : "bg-zinc-700 text-white border-zinc-600 font-semibold"
-                                            }`}
+                                            className={`px-2.5 py-0.5 rounded-md border text-xs capitalize ${getDifficultyColor(
+                                                problem.difficulty
+                                            )}`}
                                         >
                                             {problem.difficulty || "Unrated"}
                                         </span>

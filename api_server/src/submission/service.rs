@@ -38,7 +38,7 @@ impl SubmissionService {
 
         if !problem.is_public && problem.author_id != Some(claim.id) {
             let contest_id = payload.contest_id.ok_or_else(|| {
-                AppError::auth(
+                AppError::forbidden(
                     "This problem is private and can only be submitted within an active contest",
                 )
             })?;
@@ -68,10 +68,10 @@ impl SubmissionService {
                 .ok_or_else(|| AppError::not_found("Contest not found"))?;
 
             if now < contest.start_time {
-                return Err(AppError::auth("Contest has not started yet"));
+                return Err(AppError::forbidden("Contest has not started yet"));
             }
             if now > contest.end_time {
-                return Err(AppError::auth("Contest has already ended"));
+                return Err(AppError::forbidden("Contest has already ended"));
             }
 
             let is_registered = contest_registrations::Entity::find()
@@ -86,7 +86,7 @@ impl SubmissionService {
                 .is_some();
 
             if !is_registered && contest.author_id != Some(claim.id) {
-                return Err(AppError::auth(
+                return Err(AppError::forbidden(
                     "You must be registered for this contest to submit solutions",
                 ));
             }
@@ -116,10 +116,10 @@ impl SubmissionService {
                 .ok_or_else(|| AppError::not_found("Contest not found"))?;
 
             if now < contest.start_time {
-                return Err(AppError::auth("Contest has not started yet"));
+                return Err(AppError::forbidden("Contest has not started yet"));
             }
             if now > contest.end_time {
-                return Err(AppError::auth("Contest has already ended"));
+                return Err(AppError::forbidden("Contest has already ended"));
             }
 
             let is_registered = contest_registrations::Entity::find()
@@ -134,7 +134,7 @@ impl SubmissionService {
                 .is_some();
 
             if !is_registered && contest.author_id != Some(claim.id) {
-                return Err(AppError::auth(
+                return Err(AppError::forbidden(
                     "You must be registered for this contest to submit solutions",
                 ));
             }
@@ -237,7 +237,7 @@ impl SubmissionService {
 
                 let now = chrono::Utc::now();
                 if now <= c.end_time {
-                    return Err(AppError::auth(
+                    return Err(AppError::forbidden(
                         "You cannot view another participant's code while the contest is active",
                     ));
                 }
@@ -255,7 +255,7 @@ impl SubmissionService {
                 return Ok(sub);
             }
             if !p.is_public {
-                return Err(AppError::auth(
+                return Err(AppError::forbidden(
                     "You do not have permission to view this submission",
                 ));
             }
