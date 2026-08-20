@@ -96,3 +96,15 @@ export function toLocalDatetimeInput(utcString: string): string {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+export function getWsUrl(path: string): string {
+    const base = import.meta.env.VITE_BASE || "/api";
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    if (base.startsWith("http://") || base.startsWith("https://")) {
+        return base.replace(/^http/, "ws") + cleanPath;
+    }
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const cleanBase = base.replace(/\/$/, "");
+    return `${protocol}//${window.location.host}${cleanBase}${cleanPath}`;
+}
+
+

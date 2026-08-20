@@ -20,6 +20,7 @@ interface LoginPayload {
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   signin: (params: LoginPayload) => Promise<string | null>;
   refresh: () => Promise<string | null>;
   signout: () => Promise<void>;
@@ -37,7 +38,8 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const base: string = import.meta.env.VITE_BASE || "http://localhost:8000/api";
+  const base: string = import.meta.env.VITE_BASE || "/api";
+
 
   const signin = async (params: LoginPayload): Promise<string | null> => {
     const res = await fetch(base + "/user/signin", {
@@ -126,11 +128,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!stored) {
       refresh();
     } else {
-      const parsed: User = JSON.parse(stored);
-      setUser(parsed);
-      setLoading(false);
+      try {
+        const parsed: User = JSON.parse(stored);
+        if (parsed && typeof parsed.id === "number" && parsed.access_token) {
+          setUser(parsed);
+          setLoading(false);
+        } else {
+          refresh();
+        }
+      } catch {
+        localStorage.removeItem("user");
+        refresh();
+      }
     }
-
   }, []);
 
   useEffect(() => {
@@ -140,9 +150,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, signin, refresh, signout, authfetch, setUser, base }}
+      value={{ user, loading, signin, refresh, signout, authfetch, setUser, base }}
     >
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

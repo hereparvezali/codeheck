@@ -1,6 +1,6 @@
 use lapin::{
     Channel, Connection, ConnectionProperties, Consumer,
-    options::{BasicAckOptions, BasicConsumeOptions, QueueDeclareOptions},
+    options::{BasicAckOptions, BasicConsumeOptions, BasicQosOptions, QueueDeclareOptions},
     types::FieldTable,
 };
 use std::{env, sync::Arc};
@@ -10,15 +10,15 @@ use crate::{error::WorkerError, models::SubmissionPublishQueue, pipeline::JudgeP
 pub struct QueueConsumer;
 
 impl QueueConsumer {
-
-    pub async fn setup_rabbitmq() -> Result<(Arc<Channel>, Consumer), WorkerError> {
+    pub async fn setup_rabbitmq(
+        prefetch_count: u16,
+    ) -> Result<(Arc<Channel>, Consumer), WorkerError> {
         dotenvy::dotenv().ok();
         let amqp_url = env::var("RABBITMQ_URL")
             .unwrap_or_else(|_| "amqp://parvez:mypass@localhost:5672".to_string());
 
         let conn = Connection::connect(&amqp_url, ConnectionProperties::default()).await?;
         let channel = conn.create_channel().await?;
-
 
         channel
             .queue_declare(
@@ -30,7 +30,6 @@ impl QueueConsumer {
                 FieldTable::default(),
             )
             .await?;
-
 
         channel
             .queue_declare(
@@ -43,7 +42,11 @@ impl QueueConsumer {
             )
             .await?;
 
-        let hostname = env::var("HOSTNAME").unwrap_or_else(|_| "worker".to_string());
+        channel
+            .basic_qos(prefetch_count, BasicQosOptions::default())
+            .await?;
+
+        let hostname = env::var("HOST").unwrap_or_else(|_| "worker".to_string());
         let consumer = channel
             .basic_consume(
                 "outgoing".into(),
@@ -55,7 +58,6 @@ impl QueueConsumer {
 
         Ok((Arc::new(channel), consumer))
     }
-
 
     pub async fn handle_delivery(
         delivery: lapin::message::Delivery,

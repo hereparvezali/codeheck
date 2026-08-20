@@ -1,6 +1,6 @@
 import { getToken } from "../utils/storage";
 
-const BASE_URL = import.meta.env.VITE_BASE || "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_BASE || "/api";
 
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined | null>;

@@ -80,6 +80,7 @@ pub async fn refresh(
     );
 
     Ok(Json(serde_json::json!({
+        "id": user.id,
         "access_token": access_token,
         "username": user.username,
         "email": user.email

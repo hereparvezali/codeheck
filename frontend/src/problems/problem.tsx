@@ -2,7 +2,7 @@ import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom"
 import { useAuth } from "../utils/contexts/authcontext";
 import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
-import { getDifficultyColor, getStatusColor } from "../utils/helpers";
+import { getDifficultyColor, getStatusColor, getWsUrl } from "../utils/helpers";
 import { ViewSubmissions, type Submission } from "../components/view_submissions";
 
 export interface ProblemPayload {
@@ -170,9 +170,8 @@ export default function Problem() {
         }
 
         let isMounted = true;
-        const baseUrl = import.meta.env.VITE_BASE || "http://localhost:8000/api";
         const tokenParam = user?.access_token ? `&token=${encodeURIComponent(user.access_token)}` : "";
-        const wsUrl = baseUrl.replace(/^http/, "ws") + `/submission/ws?id=${currentSub.id}${tokenParam}`;
+        const wsUrl = getWsUrl(`/submission/ws?id=${currentSub.id}${tokenParam}`);
 
         let ws: WebSocket | null = null;
         let pollTimer: ReturnType<typeof setInterval> | null = null;

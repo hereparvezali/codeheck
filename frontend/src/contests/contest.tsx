@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAuth } from "../utils/contexts/authcontext";
-import { formatUtcToLocal, getContestStatusColor, getDifficultyColor, parseUtcDate } from "../utils/helpers";
+import { formatUtcToLocal, getContestStatusColor, getDifficultyColor, getWsUrl, parseUtcDate } from "../utils/helpers";
 
 interface LeaderboardEntry {
     user_id: number;
@@ -123,9 +123,8 @@ export default function ContestDetail() {
         if (!contest || activeTab !== "leaderboard") return;
         fetchLeaderboard(contest.id);
 
-        const baseUrl = import.meta.env.VITE_BASE || "http://localhost:8000/api";
         const tokenParam = user?.access_token ? `&token=${encodeURIComponent(user.access_token)}` : "";
-        const wsUrl = baseUrl.replace(/^http/, "ws") + `/contest/leaderboard/ws?contest_id=${contest.id}${tokenParam}`;
+        const wsUrl = getWsUrl(`/contest/leaderboard/ws?contest_id=${contest.id}${tokenParam}`);
 
         let ws: WebSocket | null = null;
 

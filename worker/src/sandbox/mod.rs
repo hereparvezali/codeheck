@@ -6,12 +6,15 @@ use crate::{error::WorkerError, languages::LanguageStrategy};
 pub struct DockerSandbox;
 
 impl DockerSandbox {
-
     pub async fn build_compiler_images() -> Result<(), WorkerError> {
-        let mut dir = tokio::fs::read_dir("./src/compilers").await?;
+        let mut dir = tokio::fs::read_dir("./compilers").await?;
         while let Some(entry) = dir.next_entry().await? {
             let path = entry.path();
-            let name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+            let name = path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string();
             if name.starts_with("Dockerfile") {
                 let tag = match name.split('.').nth(1) {
                     Some(t) => t,
@@ -55,7 +58,6 @@ impl DockerSandbox {
         Ok(())
     }
 
-
     pub async fn compile(
         strategy: &Arc<dyn LanguageStrategy>,
         submission_id: i64,
@@ -92,7 +94,6 @@ impl DockerSandbox {
         }
         Ok(None)
     }
-
 
     pub async fn execute_case(
         strategy: &Arc<dyn LanguageStrategy>,

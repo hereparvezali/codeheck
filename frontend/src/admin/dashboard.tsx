@@ -26,7 +26,7 @@ export default function Dashboard() {
     const limit = 8;
 
     const fetchProblems = (pc?: number) => {
-        if (!user) return;
+        if (!user?.id) return;
         setPLoading(true);
         const params = new URLSearchParams({ limit: limit.toString(), author_id: user.id.toString() });
         if (pc) params.append("cursor", pc.toString());
@@ -48,7 +48,7 @@ export default function Dashboard() {
     };
 
     const fetchContests = (cc?: number) => {
-        if (!user) return;
+        if (!user?.id) return;
         setCLoading(true);
         const params = new URLSearchParams({ limit: limit.toString(), author_id: user.id.toString() });
         if (cc) params.append("cursor", cc.toString());
