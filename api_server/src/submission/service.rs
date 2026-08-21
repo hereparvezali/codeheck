@@ -163,6 +163,7 @@ impl SubmissionService {
 
         let cases = testcases::Entity::find()
             .filter(testcases::Column::ProblemId.eq(payload.problem_id))
+            .order_by_asc(testcases::Column::Id)
             .select_only()
             .columns([testcases::Column::Input, testcases::Column::Output])
             .into_model::<InputOutput>()

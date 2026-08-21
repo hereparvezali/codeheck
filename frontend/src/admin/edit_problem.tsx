@@ -28,7 +28,6 @@ const EditProblem = () => {
     const { authfetch } = useAuth();
 
     const [problemId, setProblemId] = useState<number | null>(null);
-    const [caseCount, setCaseCount] = useState(0);
     const [formData, setFormData] = useState<UpdateProblemPayload>({
         title: "",
         slug: "",
@@ -49,11 +48,60 @@ const EditProblem = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"basic" | "samples" | "testcases">("basic");
 
+    const unescapeStr = (str?: string | null): string => {
+        if (!str) return "";
+        return str
+            .replace(/\\r\\n/g, "\n")
+            .replace(/\\n/g, "\n")
+            .replace(/\\t/g, "\t");
+    };
+
+    const formatSampleForInput = (content?: string | object): string => {
+        if (!content) return "";
+        if (typeof content === "string") {
+            const trimmed = content.trim();
+            if (
+                (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+                (trimmed.startsWith("{") && trimmed.endsWith("}"))
+            ) {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) {
+                        return parsed
+                            .map((item) =>
+                                typeof item === "string"
+                                    ? item
+                                    : JSON.stringify(item)
+                            )
+                            .join("\n\n---\n\n");
+                    }
+                    if (typeof parsed === "string") return parsed;
+                } catch {
+                    return content;
+                }
+            }
+            return content;
+        }
+        if (Array.isArray(content)) {
+            return content
+                .map((item) =>
+                    typeof item === "string"
+                        ? item
+                        : JSON.stringify(item)
+                )
+                .join("\n\n---\n\n");
+        }
+        return typeof content === "object"
+            ? JSON.stringify(content, null, 2)
+            : String(content);
+    };
 
     useEffect(() => {
         if (!id) return;
 
         setFetchLoading(true);
+        setError(null);
+
         authfetch(`/problem?id=${id}`, {
             method: "GET",
         })
@@ -64,54 +112,15 @@ const EditProblem = () => {
                 }
                 return res.json();
             })
-            .then((data: ProblemPayload) => {
+            .then(async (data: ProblemPayload) => {
                 setProblemId(data.id);
-                const formatSampleForInput = (content?: string | object): string => {
-                    if (!content) return "";
-                    if (typeof content === "string") {
-                        const trimmed = content.trim();
-                        if (
-                            (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
-                            (trimmed.startsWith("{") && trimmed.endsWith("}"))
-                        ) {
-                            try {
-                                const parsed = JSON.parse(trimmed);
-                                if (Array.isArray(parsed)) {
-                                    return parsed
-                                        .map((item) =>
-                                            typeof item === "string"
-                                                ? item
-                                                : JSON.stringify(item)
-                                        )
-                                        .join("\n\n---\n\n");
-                                }
-                                if (typeof parsed === "string") return parsed;
-                            } catch {
-                                return content;
-                            }
-                        }
-                        return content;
-                    }
-                    if (Array.isArray(content)) {
-                        return content
-                            .map((item) =>
-                                typeof item === "string"
-                                    ? item
-                                    : JSON.stringify(item)
-                            )
-                            .join("\n\n---\n\n");
-                    }
-                    return typeof content === "object"
-                        ? JSON.stringify(content, null, 2)
-                        : String(content);
-                };
 
                 setFormData({
                     title: data.title,
                     slug: data.slug,
-                    statement: data.statement || "",
-                    input_spec: data.input_spec || "",
-                    output_spec: data.output_spec || "",
+                    statement: unescapeStr(data.statement),
+                    input_spec: unescapeStr(data.input_spec),
+                    output_spec: unescapeStr(data.output_spec),
                     sample_inputs: formatSampleForInput(data.sample_inputs),
                     sample_outputs: formatSampleForInput(data.sample_outputs),
                     time_limit: data.time_limit,
@@ -119,6 +128,24 @@ const EditProblem = () => {
                     difficulty: data.difficulty || "easy",
                     is_public: data.is_public,
                 });
+
+                // Fetch existing test cases for this problem
+                try {
+                    const tcRes = await authfetch(`/problem/testcases?problem_id=${data.id}`);
+                    if (tcRes.ok) {
+                        const tcData = await tcRes.json();
+                        if (Array.isArray(tcData)) {
+                            setCases(
+                                tcData.map((tc: any) => ({
+                                    input: unescapeStr(tc.input),
+                                    output: unescapeStr(tc.output),
+                                }))
+                            );
+                        }
+                    }
+                } catch (tcErr) {
+                    console.error("Failed to load test cases:", tcErr);
+                }
             })
             .catch((err) => {
                 setError(err.message);
@@ -127,25 +154,7 @@ const EditProblem = () => {
             .finally(() => {
                 setFetchLoading(false);
             });
-
     }, [id]);
-
-
-    useEffect(() => {
-        setCases((prev) => {
-            if (caseCount > prev.length) {
-                return [
-                    ...prev,
-                    ...Array(caseCount - prev.length).fill({
-                        input: "",
-                        output: "",
-                    }),
-                ];
-            } else {
-                return prev.slice(0, caseCount);
-            }
-        });
-    }, [caseCount]);
 
     const handleChange = (
         e: ChangeEvent<
@@ -176,72 +185,81 @@ const EditProblem = () => {
         });
     };
 
-    const handleSubmit = (e: FormEvent) => {
+    const addCase = () => {
+        setCases((prev) => [...prev, { input: "", output: "" }]);
+    };
+
+    const removeCaseAt = (index: number) => {
+        setCases((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const clearAllCases = () => {
+        setCases([]);
+    };
+
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!problemId) return;
 
         setLoading(true);
         setError(null);
 
-        authfetch(`/problem`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: problemId, ...formData }),
-        })
-            .then(async (res) => {
-                if (!res.ok) {
-                    if (res.status === 401) navigate("/signin");
-                    const text = await res.text();
-                    throw new Error(text || "Failed to update problem");
-                }
-                return res.json();
-            })
-            .then(async () => {
-                if (cases.length > 0) {
-                    await handleCaseSubmit(problemId);
-                } else {
-                    navigate(`/problems/${id}`);
-                }
-            })
-            .catch((err) => setError(err.message))
-            .finally(() => {
-                setLoading(false);
+        try {
+            const res = await authfetch(`/problem`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: problemId, ...formData }),
             });
+
+            if (!res.ok) {
+                if (res.status === 401) navigate("/signin");
+                const text = await res.text();
+                throw new Error(text || "Failed to update problem");
+            }
+
+            await handleCaseSubmit(problemId);
+        } catch (err: any) {
+            setError(err.message || "Failed to update problem");
+            setLoading(false);
+        }
     };
 
     const handleCaseSubmit = async (problem_id: number) => {
         setTestcaseloading(true);
-        authfetch(`/problem/testcases`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ problem_id: problem_id, cases: cases }),
-        })
-            .then(async (res) => {
+        try {
+            // 1. Delete existing test cases
+            await authfetch(`/problem/testcases?problem_id=${problem_id}`, {
+                method: "DELETE",
+            });
+
+            // 2. Insert updated valid test cases
+            const validCases = cases.filter(
+                (c) => c.input.trim() !== "" || c.output.trim() !== ""
+            );
+
+            if (validCases.length > 0) {
+                const res = await authfetch(`/problem/testcases`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ problem_id, cases: validCases }),
+                });
+
                 if (!res.ok) {
                     if (res.status === 401) navigate("/signin");
                     throw new Error(await res.text());
                 }
-                return res.json();
-            })
-            .then(() => {
-                navigate(`/problems/${formData.slug || id}`);
-            })
-            .catch((e) => {
-                console.error(e);
-                setError("Failed to add test cases");
-            })
-            .finally(() => setTestcaseloading(false));
-    };
+            }
 
-    const removeCaseAt = (index: number) => {
-        setCases((prev) => prev.filter((_, i) => i !== index));
-        setCaseCount((prev) => prev - 1);
-    };
-
-    const addCase = () => {
-        setCaseCount((prev) => prev + 1);
+            navigate(`/problems/${formData.slug || id}`);
+        } catch (e: any) {
+            console.error("Failed to update test cases:", e);
+            setError(e.message || "Failed to update test cases");
+            setLoading(false);
+        } finally {
+            setTestcaseloading(false);
+        }
     };
 
     if (fetchLoading) {
@@ -279,7 +297,6 @@ const EditProblem = () => {
                     </div>
                 )}
 
-                {}
                 <div className="flex gap-2 border-b border-zinc-900 pb-2">
                     <button
                         type="button"
@@ -312,12 +329,11 @@ const EditProblem = () => {
                                 : "text-zinc-400 hover:text-zinc-200"
                         }`}
                     >
-                        Test Cases ({caseCount})
+                        Test Cases ({cases.length})
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {}
                     {activeTab === "basic" && (
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -433,7 +449,6 @@ const EditProblem = () => {
                         </div>
                     )}
 
-                    {}
                     {activeTab === "samples" && (
                         <div className="space-y-4">
                             <div>
@@ -495,30 +510,40 @@ const EditProblem = () => {
                         </div>
                     )}
 
-                    {}
                     {activeTab === "testcases" && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
                                 <div>
-                                    <p className="font-semibold text-zinc-200 text-xs">Add New Test Cases</p>
+                                    <p className="font-semibold text-zinc-200 text-xs">Evaluation Test Cases</p>
                                     <p className="text-[11px] text-zinc-500 mt-0.5">
-                                        Add additional test cases (existing cases will be preserved).
+                                        View, edit, add, or remove hidden test cases used for judging submissions.
                                     </p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={addCase}
-                                    className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
-                                >
-                                    <span>+</span> Add Test Case
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    {cases.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={clearAllCases}
+                                            className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-red-400 rounded-xl text-xs font-medium transition border border-zinc-800"
+                                        >
+                                            Clear All
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={addCase}
+                                        className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+                                    >
+                                        <span>+</span> Add Test Case
+                                    </button>
+                                </div>
                             </div>
 
                             {cases.length === 0 ? (
                                 <div className="text-center py-12 bg-zinc-950 rounded-xl border border-dashed border-zinc-800">
-                                    <p className="text-zinc-400 font-medium text-xs">No new test cases added</p>
+                                    <p className="text-zinc-400 font-medium text-xs">No test cases configured</p>
                                     <p className="text-[11px] text-zinc-500 mt-1">
-                                        Click "Add Test Case" to append new test cases.
+                                        Click "Add Test Case" to configure evaluation test cases.
                                     </p>
                                 </div>
                             ) : (
@@ -530,12 +555,12 @@ const EditProblem = () => {
                                         >
                                             <div className="flex items-center justify-between mb-3">
                                                 <h4 className="font-semibold text-zinc-200 text-xs">
-                                                    New Test Case #{idx + 1}
+                                                    Test Case #{idx + 1}
                                                 </h4>
                                                 <button
                                                     type="button"
                                                     onClick={() => removeCaseAt(idx)}
-                                                    className="text-zinc-400 hover:text-white text-xs font-semibold px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition"
+                                                    className="text-zinc-400 hover:text-red-400 text-xs font-semibold px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition"
                                                 >
                                                     Remove
                                                 </button>
@@ -585,7 +610,6 @@ const EditProblem = () => {
                         </div>
                     )}
 
-                    {}
                     <div className="flex gap-3 pt-4 border-t border-zinc-900">
                         <button
                             type="button"
@@ -602,7 +626,7 @@ const EditProblem = () => {
                             {loading || testcaseloading ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <div className="w-3 h-3 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
-                                    {loading ? "Updating Problem..." : "Adding Test Cases..."}
+                                    {loading ? "Updating Problem..." : "Saving Test Cases..."}
                                 </span>
                             ) : (
                                 "Update Problem"

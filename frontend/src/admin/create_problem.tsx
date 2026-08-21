@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/contexts/authcontext";
-import { useState, type FormEvent, type ChangeEvent, useEffect } from "react";
+import { useState, type FormEvent, type ChangeEvent } from "react";
 import type { ProblemPayload } from "../problems/problem";
 
 interface Case {
@@ -26,7 +26,6 @@ const CreateProblem = () => {
     const navigate = useNavigate();
     const { authfetch } = useAuth();
 
-    const [caseCount, setCaseCount] = useState(0);
     const [formData, setFormData] = useState<CreateProblemPayload>({
         title: "",
         slug: "",
@@ -45,23 +44,6 @@ const CreateProblem = () => {
     const [testcaseloading, setTestcaseloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<"basic" | "samples" | "testcases">("basic");
-
-
-    useEffect(() => {
-        setCases((prev) => {
-            if (caseCount > prev.length) {
-                return [
-                    ...prev,
-                    ...Array(caseCount - prev.length).fill({
-                        input: "",
-                        output: "",
-                    }),
-                ];
-            } else {
-                return prev.slice(0, caseCount);
-            }
-        });
-    }, [caseCount]);
 
     const handleChange = (
         e: ChangeEvent<
@@ -92,67 +74,76 @@ const CreateProblem = () => {
         });
     };
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError(null);
-
-        authfetch("/problem", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        })
-            .then(async (res) => {
-                if (!res.ok) {
-                    if (res.status === 401) navigate("/signin");
-                    const text = await res.text();
-                    throw new Error(text || "Failed to create problem");
-                }
-                return res.json();
-            })
-            .then(async (data: ProblemPayload) => {
-                if (cases.length > 0) {
-                    await handleCaseSubmit(data.id);
-                } else {
-                    navigate(`/problems/${formData.slug}`);
-                }
-            })
-            .catch((err) => setError(err.message))
-            .finally(() => {
-                setLoading(false);
-            });
-    };
-
-    const handleCaseSubmit = async (problem_id: number) => {
-        setTestcaseloading(true);
-        authfetch(`/problem/testcases`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ problem_id: problem_id, cases: cases }),
-        })
-            .then(async (res) => {
-                if (!res.ok) {
-                    if (res.status === 401) navigate("/signin");
-                    throw new Error(await res.text());
-                }
-                return res.json();
-            })
-            .then(() => {
-                navigate(`/problems/${formData.slug}`);
-            })
-            .catch((e) => console.error(e))
-            .finally(() => setTestcaseloading(false));
+    const addCase = () => {
+        setCases((prev) => [...prev, { input: "", output: "" }]);
     };
 
     const removeCaseAt = (index: number) => {
         setCases((prev) => prev.filter((_, i) => i !== index));
-        setCaseCount((prev) => prev - 1);
     };
 
-    const addCase = () => {
-        setCaseCount((prev) => prev + 1);
+    const clearAllCases = () => {
+        setCases([]);
+    };
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+
+        try {
+            const res = await authfetch("/problem", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+            });
+
+            if (!res.ok) {
+                if (res.status === 401) navigate("/signin");
+                const text = await res.text();
+                throw new Error(text || "Failed to create problem");
+            }
+
+            const data: ProblemPayload = await res.json();
+            const validCases = cases.filter(
+                (c) => c.input.trim() !== "" || c.output.trim() !== ""
+            );
+
+            if (validCases.length > 0) {
+                await handleCaseSubmit(data.id, validCases);
+            } else {
+                navigate(`/problems/${formData.slug}`);
+            }
+        } catch (err: any) {
+            setError(err.message || "An unexpected error occurred");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCaseSubmit = async (problem_id: number, validCases: Case[]) => {
+        setTestcaseloading(true);
+        try {
+            const res = await authfetch(`/problem/testcases`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ problem_id, cases: validCases }),
+            });
+
+            if (!res.ok) {
+                if (res.status === 401) navigate("/signin");
+                throw new Error(await res.text());
+            }
+
+            navigate(`/problems/${formData.slug}`);
+        } catch (e: any) {
+            console.error("Failed to insert test cases:", e);
+            setError(e.message || "Failed to insert test cases");
+        } finally {
+            setTestcaseloading(false);
+        }
     };
 
     return (
@@ -179,7 +170,6 @@ const CreateProblem = () => {
                     </div>
                 )}
 
-                {}
                 <div className="flex gap-2 border-b border-zinc-900 pb-2">
                     <button
                         type="button"
@@ -212,12 +202,11 @@ const CreateProblem = () => {
                                 : "text-zinc-400 hover:text-zinc-200"
                         }`}
                     >
-                        Test Cases ({caseCount})
+                        Test Cases ({cases.length})
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {}
                     {activeTab === "basic" && (
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,7 +322,6 @@ const CreateProblem = () => {
                         </div>
                     )}
 
-                    {}
                     {activeTab === "samples" && (
                         <div className="space-y-4">
                             <div>
@@ -395,7 +383,6 @@ const CreateProblem = () => {
                         </div>
                     )}
 
-                    {}
                     {activeTab === "testcases" && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
@@ -405,13 +392,24 @@ const CreateProblem = () => {
                                         Add test cases to judge user submissions against the problem.
                                     </p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={addCase}
-                                    className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
-                                >
-                                    <span>+</span> Add Test Case
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    {cases.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={clearAllCases}
+                                            className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-red-400 rounded-xl text-xs font-medium transition border border-zinc-800"
+                                        >
+                                            Clear All
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={addCase}
+                                        className="px-3.5 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+                                    >
+                                        <span>+</span> Add Test Case
+                                    </button>
+                                </div>
                             </div>
 
                             {cases.length === 0 ? (
@@ -435,7 +433,7 @@ const CreateProblem = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => removeCaseAt(idx)}
-                                                    className="text-zinc-400 hover:text-white text-xs font-semibold px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition"
+                                                    className="text-zinc-400 hover:text-red-400 text-xs font-semibold px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 rounded-lg border border-zinc-800 transition"
                                                 >
                                                     Remove
                                                 </button>
@@ -485,7 +483,6 @@ const CreateProblem = () => {
                         </div>
                     )}
 
-                    {}
                     <div className="flex gap-3 pt-4 border-t border-zinc-900">
                         <button
                             type="button"

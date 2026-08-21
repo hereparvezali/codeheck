@@ -306,6 +306,19 @@ impl ProblemService {
     }
 
 
+    fn sanitize_test_text(s: &str) -> String {
+        let mut text = s.replace("\r\n", "\n");
+        if text.contains("\\n") && !text.contains('\n') {
+            text = text.replace("\\n", "\n").replace("\\t", "\t");
+        }
+        text.lines()
+            .map(|line| line.trim_end())
+            .collect::<Vec<_>>()
+            .join("\n")
+            .trim()
+            .to_string()
+    }
+
     pub async fn create_testcases(
         db: &DatabaseConnection,
         author_id: i64,
@@ -324,20 +337,22 @@ impl ProblemService {
             return Err(AppError::forbidden("You are not the author of this problem"));
         }
 
-        let count = payload.cases.len();
-        let models: Vec<testcases::ActiveModel> = payload
+        let valid_cases: Vec<testcases::ActiveModel> = payload
             .cases
             .into_iter()
+            .filter(|v| !v.input.trim().is_empty() || !v.output.trim().is_empty())
             .map(|v| testcases::ActiveModel {
                 problem_id: Set(payload.problem_id),
-                input: Set(Some(v.input)),
-                output: Set(Some(v.output)),
+                input: Set(Some(Self::sanitize_test_text(&v.input))),
+                output: Set(Some(Self::sanitize_test_text(&v.output))),
                 ..Default::default()
             })
             .collect();
 
-        if !models.is_empty() {
-            testcases::Entity::insert_many(models)
+        let count = valid_cases.len();
+
+        if !valid_cases.is_empty() {
+            testcases::Entity::insert_many(valid_cases)
                 .exec(db)
                 .await
                 .map_err(|e| AppError::internal(e.to_string()))?;
@@ -352,13 +367,22 @@ impl ProblemService {
         author_id: i64,
         problem_id: i64,
     ) -> Result<Vec<testcases::Model>, AppError> {
+        let problem = problems::Entity::find_by_id(problem_id)
+            .select_only()
+            .columns([problems::Column::Id, problems::Column::AuthorId])
+            .into_model::<ProblemIdAuthorId>()
+            .one(db)
+            .await
+            .map_err(|e| AppError::internal(e.to_string()))?
+            .ok_or_else(|| AppError::not_found("Problem not found"))?;
+
+        if problem.author_id != Some(author_id) {
+            return Err(AppError::forbidden("You are not the author of this problem"));
+        }
+
         let cases = testcases::Entity::find()
-            .inner_join(problems::Entity)
-            .filter(
-                Condition::all()
-                    .add(testcases::Column::ProblemId.eq(problem_id))
-                    .add(problems::Column::AuthorId.eq(author_id)),
-            )
+            .filter(testcases::Column::ProblemId.eq(problem_id))
+            .order_by_asc(testcases::Column::Id)
             .all(db)
             .await
             .map_err(|e| AppError::internal(e.to_string()))?;
@@ -373,6 +397,9 @@ impl ProblemService {
         problem_id: i64,
     ) -> Result<u64, AppError> {
         let problem = problems::Entity::find_by_id(problem_id)
+            .select_only()
+            .columns([problems::Column::Id, problems::Column::AuthorId])
+            .into_model::<ProblemIdAuthorId>()
             .one(db)
             .await
             .map_err(|e| AppError::internal(e.to_string()))?
