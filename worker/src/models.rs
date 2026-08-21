@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SubmissionPublishQueue {
     pub submission_id: i64,
@@ -13,13 +12,11 @@ pub struct SubmissionPublishQueue {
     pub token: String,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InputOutput {
     pub input: Option<String>,
     pub output: Option<String>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ResponseFromWorker {
@@ -31,7 +28,6 @@ pub struct ResponseFromWorker {
 }
 
 impl ResponseFromWorker {
-
     pub fn new(id: i64) -> Self {
         Self {
             id,

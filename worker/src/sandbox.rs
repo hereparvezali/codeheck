@@ -117,7 +117,7 @@ impl IsolateSandbox {
     /// Executes a single test case within the Isolate sandbox
     pub async fn execute_case(
         strategy: &dyn LanguageStrategy,
-        box_id: usize,
+        cpu_id: usize,
         box_dir: &Path,
         input: &Option<String>,
         time_limit_ms: i16,
@@ -126,7 +126,7 @@ impl IsolateSandbox {
         let stdin_file = box_dir.join("input.in");
         let stdout_file = box_dir.join("output.out");
         let stderr_file = box_dir.join("error.err");
-        let meta_file = format!("/tmp/isolate_meta_{}.txt", box_id);
+        let meta_file = format!("/tmp/isolate_meta_{}.txt", cpu_id);
 
         if let Some(data) = input {
             fs::write(&stdin_file, data).await?;
@@ -139,7 +139,10 @@ impl IsolateSandbox {
         let mem_limit_kb = (memory_limit_mb as u32) * 1024;
 
         let mut args: Vec<String> = vec![
-            format!("--box-id={}", box_id),
+            "-c".to_string(),
+            cpu_id.to_string(),
+            "isolate".to_string(),
+            format!("--box-id={}", cpu_id),
             format!("--time={:.3}", time_limit_sec),
             format!("--wall-time={:.3}", wall_time_sec),
             "--extra-time=0.5".to_string(),
@@ -165,7 +168,7 @@ impl IsolateSandbox {
         args.push("--".to_string());
         args.extend(strategy.run_command());
 
-        let _ = Command::new("isolate").args(&args).output().await?;
+        let _ = Command::new("taskset").args(&args).output().await?;
 
         let meta = Self::parse_meta(&meta_file).await?;
         let stdout = fs::read_to_string(&stdout_file).await.unwrap_or_default();

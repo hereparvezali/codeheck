@@ -24,27 +24,27 @@ async fn main() -> Result<(), WorkerError> {
         .with_line_number(true)
         .init();
 
-    tracing::info!("CodeHeck Isolate Judge Engine Worker Starting");
+    tracing::info!("Starting...");
 
     // 1. Verify that the isolate executable is present on the host
     IsolateSandbox::verify_environment().await?;
 
-    let cpus = (num_cpus::get().saturating_sub(1)).max(1);
+    let max_cpu_id = num_cpus::get() - 1;
 
     // 2. Clean up any leftover isolate boxes from prior runs
-    for box_id in 0..cpus {
+    for box_id in 0..max_cpu_id {
         let _ = IsolateSandbox::cleanup_box(box_id).await;
     }
-    tracing::info!(slots = cpus, "Initialized isolate sandbox slots");
+    tracing::info!(slots = max_cpu_id, "Initialized isolate sandbox slots");
 
     // 3. Connect to RabbitMQ
-    let (channel, mut consumer) = QueueConsumer::setup_rabbitmq(cpus as u16).await?;
+    let (channel, mut consumer) = QueueConsumer::setup_rabbitmq(max_cpu_id as u16).await?;
 
-    let semaphore = Arc::new(Semaphore::new(cpus));
+    let semaphore = Arc::new(Semaphore::new(max_cpu_id));
     let core_counter = Arc::new(Mutex::new(0));
 
     tracing::info!(
-        slots = cpus,
+        slots = max_cpu_id,
         queue = "outgoing",
         "CodeHeck Judge Worker ready. Listening for submissions on 'outgoing' queue..."
     );
@@ -56,8 +56,8 @@ async fn main() -> Result<(), WorkerError> {
         let core_id = {
             let mut counter = core_counter.lock().await;
             let id = *counter;
-            *counter = (*counter + 1) % cpus;
-            id
+            *counter = (*counter + 1) % max_cpu_id;
+            id + 1
         };
 
         tokio::spawn(async move {

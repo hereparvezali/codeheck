@@ -14,8 +14,7 @@ impl QueueConsumer {
         prefetch_count: u16,
     ) -> Result<(Arc<Channel>, Consumer), WorkerError> {
         dotenvy::dotenv().ok();
-        let amqp_url = env::var("RABBITMQ_URL")
-            .unwrap_or_else(|_| "amqp://parvez:mypass@localhost:5672".to_string());
+        let amqp_url = env::var("RABBITMQ_URL").expect("RABBITMQ_URL must be set!");
 
         let conn = Connection::connect(&amqp_url, ConnectionProperties::default()).await?;
         let channel = conn.create_channel().await?;
