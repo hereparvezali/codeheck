@@ -11,15 +11,15 @@ impl LanguageStrategy for JavaScriptStrategy {
         "js"
     }
 
-    fn docker_image(&self) -> &'static str {
-        "js-rebuilt:latest"
-    }
-
-    fn compile_command(&self, _job_dir: &str) -> Option<String> {
+    fn compile_command(&self, _src_path: &str, _out_path: &str) -> Option<(String, Vec<String>)> {
         None
     }
 
-    fn run_command(&self, job_dir: &str) -> String {
-        format!("node {}/Main.js", job_dir)
+    fn run_command(&self) -> Vec<String> {
+        vec!["/usr/bin/node".to_string(), "Main.js".to_string()]
+    }
+
+    fn supports_address_space_limit(&self) -> bool {
+        false
     }
 }

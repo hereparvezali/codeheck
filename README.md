@@ -1,6 +1,6 @@
 # CodeHeck
 
-**CodeHeck** is a high-performance, distributed Online Judge and Competitive Programming platform built with Rust, Axum, SeaORM, PostgreSQL, RabbitMQ, Docker Sandbox Isolation, and React 19 with TypeScript and Monaco Editor.
+**CodeHeck** is a high-performance, distributed Online Judge and Competitive Programming platform built with Rust, Axum, SeaORM, PostgreSQL, RabbitMQ, Isolate Sandbox Isolation, and React 19 with TypeScript and Monaco Editor.
 
 ---
 
@@ -13,8 +13,8 @@ graph TD
     APIServer <-->|SeaORM 2.0| Postgres[(PostgreSQL DB on :5432)]
     APIServer -->|Publish Submissions| RabbitMQ[[RabbitMQ Queue on :5672]]
     RabbitMQ -->|Consume Submissions| Worker[worker (Rust Engine)]
-    Worker -->|Two-Stage Sandbox Execution| DockerSandbox[Docker Containers (g++20, rustc, openjdk, python3, go, node)]
-    Worker -->|PUT /api/submission| APIServer
+    Worker -->|Two-Stage Isolate Sandbox Execution| IsolateSandbox[Isolate Sandboxes (g++20, rustc, openjdk, python3, go, node)]
+    Worker -->|RabbitMQ 'incomming' Queue| APIServer
 ```
 
 ---
@@ -22,7 +22,7 @@ graph TD
 ## 🚀 Key Features
 
 - **Multi-Language Judge Engine**: Supports C++ (g++ 20), Python 3, Rust, Java (OpenJDK), Go, and Node.js.
-- **Two-Stage Sandbox Execution**: Isolated compilation stage (clean `CE` diagnostics) followed by resource-limited runtime execution (`--pids-limit=64`, `--cpus=1`, `--memory=<limit>m`, `--network=none`).
+- **Two-Stage Isolate Sandbox Execution**: Isolated compilation stage (clean `CE` diagnostics) followed by microsecond-precise, resource-limited runtime execution inside Linux namespaces and cgroups (`--processes=64`, `--open-files=64`, `--time`, `--mem`).
 - **Granular Verdict Reporting**: `AC` (Accepted), `WA` (Wrong Answer), `TLE` (Time Limit Exceeded), `MLE` (Memory Limit Exceeded), `CE` (Compilation Error), `RE` (Runtime Error), `PENDING` (Judging).
 - **Public Browsing & Optional Auth**: Guests can freely explore problems, view contests, and inspect live standings; authentication seamlessly unlocks code submission, rating tracking, and authoring tools.
 - **Competitive Contests Arena**: Live countdown timers, registration management, contest problem sets, and real-time automated penalty leaderboards.
@@ -37,9 +37,9 @@ graph TD
 | Layer | Technologies |
 | :--- | :--- |
 | **Backend API** | Rust 2024, Axum 0.8, SeaORM 2.0-rc, Lapin (RabbitMQ), Tokio, Bcrypt, JWT |
-| **Judging Worker** | Rust 2024, Lapin, Docker CLI subprocessing, `/usr/bin/time -v`, Tokio |
+| **Judging Worker** | Rust 2024, Lapin, Isolate Sandbox Engine, Tokio |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, Monaco Editor, React Router v7 |
-| **Infrastructure** | PostgreSQL 16 (Alpine), RabbitMQ (Alpine), Docker |
+| **Infrastructure** | PostgreSQL 16 (Alpine), RabbitMQ (Alpine), Isolate Sandbox |
 
 ---
 

@@ -11,15 +11,15 @@ impl LanguageStrategy for PythonStrategy {
         "py"
     }
 
-    fn docker_image(&self) -> &'static str {
-        "python-rebuilt:latest"
-    }
-
-    fn compile_command(&self, _job_dir: &str) -> Option<String> {
+    fn compile_command(&self, _src_path: &str, _out_path: &str) -> Option<(String, Vec<String>)> {
         None
     }
 
-    fn run_command(&self, job_dir: &str) -> String {
-        format!("python3 {}/Main.py", job_dir)
+    fn run_command(&self) -> Vec<String> {
+        vec!["/usr/bin/python3".to_string(), "Main.py".to_string()]
+    }
+
+    fn supports_address_space_limit(&self) -> bool {
+        true
     }
 }

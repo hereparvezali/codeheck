@@ -11,15 +11,28 @@ impl LanguageStrategy for JavaStrategy {
         "java"
     }
 
-    fn docker_image(&self) -> &'static str {
-        "openjdk-rebuilt:latest"
+    fn compile_command(&self, src_path: &str, out_path: &str) -> Option<(String, Vec<String>)> {
+        Some((
+            "javac".to_string(),
+            vec![
+                src_path.to_string(),
+                "-d".to_string(),
+                out_path.to_string(),
+            ],
+        ))
     }
 
-    fn compile_command(&self, job_dir: &str) -> Option<String> {
-        Some(format!("javac {}/Main.java -d {}", job_dir, job_dir))
+    fn run_command(&self) -> Vec<String> {
+        vec![
+            "java".to_string(),
+            "-Xmx512m".to_string(),
+            "-cp".to_string(),
+            ".".to_string(),
+            "Main".to_string(),
+        ]
     }
 
-    fn run_command(&self, job_dir: &str) -> String {
-        format!("java -cp {} Main", job_dir)
+    fn supports_address_space_limit(&self) -> bool {
+        false
     }
 }

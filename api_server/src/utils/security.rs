@@ -81,7 +81,7 @@ pub fn validate_token(token: &str, config: &Config) -> Result<Claim, AppError> {
 }
 
 pub fn hash_password(password: &str) -> Result<String, AppError> {
-    bcrypt::hash(password, bcrypt::DEFAULT_COST)
+    bcrypt::hash(password, bcrypt::DEFAULT_COST / 2)
         .map_err(|e| AppError::internal(format!("Failed to hash password: {}", e)))
 }
 
@@ -103,4 +103,3 @@ mod tests {
         assert!(!verify_password(&hash, "wrong_password").expect("Verification should succeed"));
     }
 }
-

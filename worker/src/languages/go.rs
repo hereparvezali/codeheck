@@ -11,15 +11,23 @@ impl LanguageStrategy for GoStrategy {
         "go"
     }
 
-    fn docker_image(&self) -> &'static str {
-        "go-rebuilt:latest"
+    fn compile_command(&self, src_path: &str, out_path: &str) -> Option<(String, Vec<String>)> {
+        Some((
+            "go".to_string(),
+            vec![
+                "build".to_string(),
+                "-o".to_string(),
+                out_path.to_string(),
+                src_path.to_string(),
+            ],
+        ))
     }
 
-    fn compile_command(&self, job_dir: &str) -> Option<String> {
-        Some(format!("go build -o {}/Main {}/Main.go", job_dir, job_dir))
+    fn run_command(&self) -> Vec<String> {
+        vec!["./Main".to_string()]
     }
 
-    fn run_command(&self, job_dir: &str) -> String {
-        format!("{}/Main", job_dir)
+    fn supports_address_space_limit(&self) -> bool {
+        false
     }
 }

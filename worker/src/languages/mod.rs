@@ -11,9 +11,9 @@ pub trait LanguageStrategy: Send + Sync {
     #[allow(dead_code)]
     fn name(&self) -> &'static str;
     fn file_extension(&self) -> &'static str;
-    fn docker_image(&self) -> &'static str;
-    fn compile_command(&self, job_dir: &str) -> Option<String>;
-    fn run_command(&self, job_dir: &str) -> String;
+    fn compile_command(&self, src_path: &str, out_path: &str) -> Option<(String, Vec<String>)>;
+    fn run_command(&self) -> Vec<String>;
+    fn supports_address_space_limit(&self) -> bool;
 }
 
 pub struct LanguageRegistry;

@@ -7,13 +7,10 @@ mod sandbox;
 
 use futures_util::StreamExt as _;
 use std::sync::Arc;
-use tokio::{
-    fs,
-    sync::{Mutex, Semaphore},
-};
+use tokio::sync::{Mutex, Semaphore};
 use tracing_subscriber::{EnvFilter, fmt};
 
-use crate::{consumer::QueueConsumer, error::WorkerError, sandbox::DockerSandbox};
+use crate::{consumer::QueueConsumer, error::WorkerError, sandbox::IsolateSandbox};
 
 #[tokio::main]
 async fn main() -> Result<(), WorkerError> {
@@ -27,17 +24,20 @@ async fn main() -> Result<(), WorkerError> {
         .with_line_number(true)
         .init();
 
-    tracing::info!("CodeHeck Judge Engine Worker Starting");
+    tracing::info!("CodeHeck Isolate Judge Engine Worker Starting");
 
-    if let Err(e) = DockerSandbox::build_compiler_images().await {
-        tracing::warn!("Docker images build report: {:?}", e);
-    }
-
-    if !fs::try_exists("/tmp/codebox").await.unwrap_or(false) {
-        fs::create_dir_all("/tmp/codebox").await?;
-    }
+    // 1. Verify that the isolate executable is present on the host
+    IsolateSandbox::verify_environment().await?;
 
     let cpus = (num_cpus::get().saturating_sub(1)).max(1);
+
+    // 2. Clean up any leftover isolate boxes from prior runs
+    for box_id in 0..cpus {
+        let _ = IsolateSandbox::cleanup_box(box_id).await;
+    }
+    tracing::info!(slots = cpus, "Initialized isolate sandbox slots");
+
+    // 3. Connect to RabbitMQ
     let (channel, mut consumer) = QueueConsumer::setup_rabbitmq(cpus as u16).await?;
 
     let semaphore = Arc::new(Semaphore::new(cpus));

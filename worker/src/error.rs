@@ -12,8 +12,8 @@ pub enum WorkerError {
     #[error("JSON serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
-    #[error("Docker build error: {0}")]
-    DockerBuild(String),
+    #[error("Sandbox error: {0}")]
+    Sandbox(String),
 
     #[error("Unsupported language: {0}")]
     UnsupportedLanguage(String),

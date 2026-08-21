@@ -11,18 +11,23 @@ impl LanguageStrategy for RustStrategy {
         "rs"
     }
 
-    fn docker_image(&self) -> &'static str {
-        "rust-rebuilt:latest"
-    }
-
-    fn compile_command(&self, job_dir: &str) -> Option<String> {
-        Some(format!(
-            "rustc -O {}/Main.rs -o {}/Main",
-            job_dir, job_dir
+    fn compile_command(&self, src_path: &str, out_path: &str) -> Option<(String, Vec<String>)> {
+        Some((
+            "rustc".to_string(),
+            vec![
+                "-O".to_string(),
+                src_path.to_string(),
+                "-o".to_string(),
+                out_path.to_string(),
+            ],
         ))
     }
 
-    fn run_command(&self, job_dir: &str) -> String {
-        format!("{}/Main", job_dir)
+    fn run_command(&self) -> Vec<String> {
+        vec!["./Main".to_string()]
+    }
+
+    fn supports_address_space_limit(&self) -> bool {
+        true
     }
 }
