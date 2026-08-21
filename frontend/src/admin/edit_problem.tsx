@@ -66,18 +66,54 @@ const EditProblem = () => {
             })
             .then((data: ProblemPayload) => {
                 setProblemId(data.id);
+                const formatSampleForInput = (content?: string | object): string => {
+                    if (!content) return "";
+                    if (typeof content === "string") {
+                        const trimmed = content.trim();
+                        if (
+                            (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+                            (trimmed.startsWith("{") && trimmed.endsWith("}"))
+                        ) {
+                            try {
+                                const parsed = JSON.parse(trimmed);
+                                if (Array.isArray(parsed)) {
+                                    return parsed
+                                        .map((item) =>
+                                            typeof item === "string"
+                                                ? item
+                                                : JSON.stringify(item)
+                                        )
+                                        .join("\n\n---\n\n");
+                                }
+                                if (typeof parsed === "string") return parsed;
+                            } catch {
+                                return content;
+                            }
+                        }
+                        return content;
+                    }
+                    if (Array.isArray(content)) {
+                        return content
+                            .map((item) =>
+                                typeof item === "string"
+                                    ? item
+                                    : JSON.stringify(item)
+                            )
+                            .join("\n\n---\n\n");
+                    }
+                    return typeof content === "object"
+                        ? JSON.stringify(content, null, 2)
+                        : String(content);
+                };
+
                 setFormData({
                     title: data.title,
                     slug: data.slug,
                     statement: data.statement || "",
                     input_spec: data.input_spec || "",
                     output_spec: data.output_spec || "",
-                    sample_inputs: typeof data.sample_inputs === 'string'
-                        ? data.sample_inputs
-                        : JSON.stringify(data.sample_inputs, null, 2),
-                    sample_outputs: typeof data.sample_outputs === 'string'
-                        ? data.sample_outputs
-                        : JSON.stringify(data.sample_outputs, null, 2),
+                    sample_inputs: formatSampleForInput(data.sample_inputs),
+                    sample_outputs: formatSampleForInput(data.sample_outputs),
                     time_limit: data.time_limit,
                     memory_limit: data.memory_limit,
                     difficulty: data.difficulty || "easy",

@@ -278,17 +278,50 @@ export default function Problem() {
         }
     };
 
-    const renderContent = (content?: string | object) => {
-        if (!content) return "None";
-        if (typeof content === "string") {
-            try {
-                const parsed = JSON.parse(content);
-                return JSON.stringify(parsed, null, 2);
-            } catch {
-                return content;
-            }
+    const parseSamples = (content?: string | object): string[] => {
+        if (!content) return [];
+        if (Array.isArray(content)) {
+            return content.map((item) =>
+                typeof item === "string"
+                    ? item
+                    : typeof item === "object"
+                    ? JSON.stringify(item, null, 2)
+                    : String(item)
+            );
         }
-        return JSON.stringify(content, null, 2);
+        if (typeof content === "string") {
+            const trimmed = content.trim();
+            if (
+                (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+                (trimmed.startsWith("{") && trimmed.endsWith("}"))
+            ) {
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (Array.isArray(parsed)) {
+                        return parsed.map((item) =>
+                            typeof item === "string"
+                                ? item
+                                : typeof item === "object"
+                                ? JSON.stringify(item, null, 2)
+                                : String(item)
+                        );
+                    }
+                    if (typeof parsed === "string") {
+                        return [parsed];
+                    }
+                    if (typeof parsed === "object" && parsed !== null) {
+                        return [JSON.stringify(parsed, null, 2)];
+                    }
+                } catch {
+                    // Fall back to raw string if JSON parsing fails
+                }
+            }
+            return [content];
+        }
+        if (typeof content === "object") {
+            return [JSON.stringify(content, null, 2)];
+        }
+        return [String(content)];
     };
 
     if (loading) {
@@ -403,23 +436,47 @@ export default function Problem() {
                                     </section>
                                 )}
 
-                                {problem.sample_inputs && (
-                                    <section className="space-y-2">
-                                        <h3 className="font-semibold text-xs text-zinc-400 uppercase tracking-wider">Sample Inputs</h3>
-                                        <pre className="p-4 bg-zinc-950 border border-zinc-900 font-mono text-xs text-zinc-300 rounded-xl whitespace-pre-wrap overflow-x-auto">
-                                            {renderContent(problem.sample_inputs)}
-                                        </pre>
-                                    </section>
-                                )}
+                                {(() => {
+                                    const sampleInputs = parseSamples(problem.sample_inputs);
+                                    const sampleOutputs = parseSamples(problem.sample_outputs);
+                                    const maxSamples = Math.max(sampleInputs.length, sampleOutputs.length);
 
-                                {problem.sample_outputs && (
-                                    <section className="space-y-2">
-                                        <h3 className="font-semibold text-xs text-zinc-400 uppercase tracking-wider">Sample Outputs</h3>
-                                        <pre className="p-4 bg-zinc-950 border border-zinc-900 font-mono text-xs text-zinc-300 rounded-xl whitespace-pre-wrap overflow-x-auto">
-                                            {renderContent(problem.sample_outputs)}
-                                        </pre>
-                                    </section>
-                                )}
+                                    if (maxSamples === 0) return null;
+
+                                    return (
+                                        <div className="space-y-4">
+                                            {Array.from({ length: maxSamples }).map((_, idx) => (
+                                                <div key={idx} className="space-y-2">
+                                                    <h3 className="font-semibold text-xs text-zinc-400 uppercase tracking-wider">
+                                                        {maxSamples > 1 ? `Sample Case #${idx + 1}` : "Sample Case"}
+                                                    </h3>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        {sampleInputs[idx] !== undefined && (
+                                                            <div className="space-y-1">
+                                                                <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                                                                    Sample Input
+                                                                </span>
+                                                                <pre className="p-3.5 bg-zinc-950 border border-zinc-900 font-mono text-xs text-zinc-300 rounded-xl whitespace-pre-wrap overflow-x-auto select-all">
+                                                                    {sampleInputs[idx]}
+                                                                </pre>
+                                                            </div>
+                                                        )}
+                                                        {sampleOutputs[idx] !== undefined && (
+                                                            <div className="space-y-1">
+                                                                <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                                                                    Sample Output
+                                                                </span>
+                                                                <pre className="p-3.5 bg-zinc-950 border border-zinc-900 font-mono text-xs text-zinc-300 rounded-xl whitespace-pre-wrap overflow-x-auto select-all">
+                                                                    {sampleOutputs[idx]}
+                                                                </pre>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
                             </>
                         ) : (
                             <div className="space-y-4">
