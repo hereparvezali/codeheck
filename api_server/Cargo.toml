@@ -17,6 +17,7 @@ dotenvy = "0.15.7"
 futures-util = "0.3.32"
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 lapin = { version = "4.3.0", features = ["rustls--ring"]}
+lettre = { version = "0.11",default-features=false, features = ["tokio1-rustls-tls", "builder", "smtp-transport"] }
 rustls = { version = "0.23.37", features = ["ring"] }
 sea-orm = { version = "2.0.0-rc.37", features = ["runtime-tokio-rustls", "sqlx-postgres"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -27,3 +28,4 @@ tokio-stream = { version = "0.1.18", features = ["sync"] }
 tower = "0.5.3"
 tower-cookies = "0.11.0"
 tower-http = { version = "0.6.8", features = ["full"] }
+uuid = { version = "1.18", features = ["v4"] }

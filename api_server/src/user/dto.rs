@@ -72,15 +72,69 @@ pub struct RetrieveUserResponse {
     pub email: String,
     pub rating: i16,
     pub created_at: DateTimeWithTimeZone,
+    pub verified: bool,
 }
 impl RetrieveUserResponse {
-    pub fn new(id: i64, username: String, email: String, rating: i16, created_at: DateTimeWithTimeZone) -> Self {
+    pub fn new(
+        id: i64,
+        username: String,
+        email: String,
+        rating: i16,
+        created_at: DateTimeWithTimeZone,
+        verified: bool,
+    ) -> Self {
         Self {
             id,
             username,
             email,
             rating,
             created_at,
+            verified,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SignupResponse {
+    pub id: i64,
+    pub username: String,
+    pub email: String,
+    pub message: String,
+}
+impl SignupResponse {
+    pub fn new(id: i64, username: String, email: String, message: impl Into<String>) -> Self {
+        Self {
+            id,
+            username,
+            email,
+            message: message.into(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct VerifyEmailPayload {
+    pub token: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyEmailQuery {
+    pub token: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ResendVerificationPayload {
+    pub email: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MessageResponse {
+    pub message: String,
+}
+impl MessageResponse {
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
         }
     }
 }

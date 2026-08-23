@@ -3,6 +3,7 @@ import Navbar from "./components/navbar";
 import Home from "./home/home";
 import Signup from "./user/signup";
 import Signin from "./user/signin";
+import VerifyEmail from "./user/verify_email";
 import Profile from "./profile/profile";
 import Contests from "./contests/contests";
 import ContestDetail from "./contests/contest";
@@ -29,6 +30,7 @@ export default function App() {
                             <Route path="/" element={<Home />} />
                             <Route path="/signup" element={<Signup />} />
                             <Route path="/signin" element={<Signin />} />
+                            <Route path="/verify-email" element={<VerifyEmail />} />
 
                             {}
                             <Route

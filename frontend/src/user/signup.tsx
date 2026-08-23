@@ -28,7 +28,18 @@ export default function Signup() {
             });
 
             if (!res.ok) {
-                throw new Error(await res.text() || "Signup failed");
+                let errorMsg = "Signup failed";
+                try {
+                    const data = await res.json();
+                    errorMsg = data.message || data.error || errorMsg;
+                } catch {
+                    try {
+                        errorMsg = await res.text() || errorMsg;
+                    } catch {
+                        // fallback
+                    }
+                }
+                throw new Error(errorMsg);
             }
             navigate("/signin");
         } catch (err) {

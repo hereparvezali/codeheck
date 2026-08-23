@@ -66,8 +66,18 @@ export default function Signin() {
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 text-center font-medium">
-                            {error}
+                        <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 text-center font-medium space-y-2">
+                            <div>{error}</div>
+                            {error.toLowerCase().includes("verify") && (
+                                <div>
+                                    <Link
+                                        to="/verify-email"
+                                        className="text-zinc-100 font-semibold underline hover:text-white"
+                                    >
+                                        Resend verification link
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     )}
 

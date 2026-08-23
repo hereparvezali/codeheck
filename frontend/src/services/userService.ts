@@ -17,6 +17,10 @@ export interface UserStats extends UserProfile {
   accepted_submissions: number;
 }
 
+export interface MessageResponse {
+  message: string;
+}
+
 export const UserService = {
   getMe: () => apiRequest<UserProfile>("/user"),
 
@@ -25,4 +29,16 @@ export const UserService = {
 
   getUserStats: (params?: { user_id?: number; username?: string }) =>
     apiRequest<UserStats>("/user/stats", { params }),
+
+  verifyEmail: (token: string) =>
+    apiRequest<MessageResponse>("/user/verify", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+
+  resendVerification: (email: string) =>
+    apiRequest<MessageResponse>("/user/resend-verification", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 };

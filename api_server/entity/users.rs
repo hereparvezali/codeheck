@@ -15,6 +15,8 @@ pub struct Model {
     pub password: String,
     pub rating: i16,
     pub created_at: DateTimeWithTimeZone,
+    pub verified: bool,
+    pub verification_token: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

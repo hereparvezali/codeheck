@@ -7,6 +7,7 @@ mod m20250729_201113_contests;
 mod m20250729_202337_submissions;
 mod m20250729_202925_contest_problems;
 mod m20250729_204136_contest_registrations;
+mod m20260822_183638_alter_users_email_verification;
 
 pub struct Migrator;
 
@@ -21,6 +22,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250729_202337_submissions::Migration),
             Box::new(m20250729_202925_contest_problems::Migration),
             Box::new(m20250729_204136_contest_registrations::Migration),
+            Box::new(m20260822_183638_alter_users_email_verification::Migration),
         ]
     }
 }

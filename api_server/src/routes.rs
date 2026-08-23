@@ -11,7 +11,9 @@ pub fn api_routes(state: &AppState) -> Router<AppState> {
         .route("/user/signup", post(user::handlers::signup))
         .route("/user/signin", post(user::handlers::signin))
         .route("/user/signout", post(user::handlers::signout).get(user::handlers::signout))
-        .route("/user/refresh", post(user::handlers::refresh).get(user::handlers::refresh));
+        .route("/user/refresh", post(user::handlers::refresh).get(user::handlers::refresh))
+        .route("/user/verify", get(user::handlers::verify_email_get).post(user::handlers::verify_email_post))
+        .route("/user/resend-verification", post(user::handlers::resend_verification));
 
     let protected_routes = Router::new()
         .merge(problem::router())

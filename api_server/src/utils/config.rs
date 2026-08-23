@@ -7,6 +7,7 @@ pub struct Config {
     pub database: DatabaseConfig,
     pub rabbitmq: RabbitMqConfig,
     pub jwt: JwtConfig,
+    pub smtp: SmtpConfig,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -39,6 +40,17 @@ pub struct JwtConfig {
     pub refresh_token_expiry_minutes: usize,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct SmtpConfig {
+    pub host: String,
+    pub port: u16,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub from_email: String,
+    pub from_name: String,
+    pub frontend_url: String,
+}
+
 impl Config {
     pub fn from_env() -> Result<Self, String> {
         Ok(Config {
@@ -49,7 +61,7 @@ impl Config {
                     .parse()
                     .map_err(|_| "Invalid SERVER_PORT")?,
                 timeout_seconds: env::var("SERVER_TIMEOUT")
-                    .unwrap_or_else(|_| "5".to_string())
+                    .unwrap_or_else(|_| "30".to_string())
                     .parse()
                     .map_err(|_| "Invalid SERVER_TIMEOUT")?,
             },
@@ -87,6 +99,28 @@ impl Config {
                     .unwrap_or_else(|_| "10080".to_string())
                     .parse()
                     .map_err(|_| "Invalid JWT_REFRESH_EXPIRY")?,
+            },
+            smtp: SmtpConfig {
+                host: env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".to_string()),
+                port: env::var("SMTP_PORT")
+                    .unwrap_or_else(|_| "587".to_string())
+                    .parse()
+                    .map_err(|_| "Invalid SMTP_PORT")?,
+                username: Some(
+                    env::var("SMTP_USERNAME")
+                        .or_else(|_| env::var("SMTP_USER"))
+                        .map_err(|_| "SMTP_USERNAME must be set")?,
+                ),
+                password: Some(
+                    env::var("SMTP_PASSWORD")
+                        .or_else(|_| env::var("SMTP_PASS"))
+                        .map_err(|_| "SMTP_PASSWORD must be set")?,
+                ),
+                from_email: env::var("SMTP_FROM_EMAIL")
+                    .or_else(|_| env::var("SMTP_FROM"))
+                    .map_err(|_| "SMTP_FROM must be set")?,
+                from_name: env::var("SMTP_FROM_NAME").unwrap_or_else(|_| "CodeHeck".to_string()),
+                frontend_url: env::var("FRONTEND_URL").map_err(|_| "FRONTEND_URL must be set")?,
             },
         })
     }

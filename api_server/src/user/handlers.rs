@@ -7,8 +7,9 @@ use tower_cookies::{Cookie, Cookies};
 
 use super::{
     dto::{
-        CreateUserPayload, RetrieveUserResponse, RetrieveUserStatsQuery, RetrieveUserinfoQuery,
-        SigninUserPayload, SigninUserResponse, UserStatsResponse,
+        CreateUserPayload, MessageResponse, ResendVerificationPayload, RetrieveUserResponse,
+        RetrieveUserStatsQuery, RetrieveUserinfoQuery, SigninUserPayload, SigninUserResponse,
+        SignupResponse, UserStatsResponse, VerifyEmailPayload, VerifyEmailQuery,
     },
     service::UserService,
 };
@@ -23,8 +24,32 @@ use crate::{
 pub async fn signup(
     State(stt): State<AppState>,
     Json(payload): Json<CreateUserPayload>,
-) -> Result<Json<SigninUserResponse>, AppError> {
-    let res = UserService::signup(&stt.db, payload).await?;
+) -> Result<Json<SignupResponse>, AppError> {
+    let res = UserService::signup(&stt.db, &stt.config, payload).await?;
+    Ok(Json(res))
+}
+
+pub async fn verify_email_get(
+    State(stt): State<AppState>,
+    Query(query): Query<VerifyEmailQuery>,
+) -> Result<Json<MessageResponse>, AppError> {
+    let res = UserService::verify_email(&stt.db, &query.token).await?;
+    Ok(Json(res))
+}
+
+pub async fn verify_email_post(
+    State(stt): State<AppState>,
+    Json(payload): Json<VerifyEmailPayload>,
+) -> Result<Json<MessageResponse>, AppError> {
+    let res = UserService::verify_email(&stt.db, &payload.token).await?;
+    Ok(Json(res))
+}
+
+pub async fn resend_verification(
+    State(stt): State<AppState>,
+    Json(payload): Json<ResendVerificationPayload>,
+) -> Result<Json<MessageResponse>, AppError> {
+    let res = UserService::resend_verification(&stt.db, &stt.config, payload).await?;
     Ok(Json(res))
 }
 

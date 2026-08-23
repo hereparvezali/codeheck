@@ -23,7 +23,7 @@ pub async fn app() -> Result<Router, AppError> {
                 .layer(CookieManagerLayer::new())
                 .layer(TimeoutLayer::with_status_code(
                     StatusCode::SERVICE_UNAVAILABLE,
-                    Duration::from_secs(5),
+                    Duration::from_secs(state.config.server.timeout_seconds),
                 ))
                 .layer(middleware::from_fn(logger::logger)),
         )

@@ -5,14 +5,16 @@ use sea_orm::{
 use std::sync::Arc;
 
 use super::dto::{
-    CreateUserPayload, RetrieveUserResponse, RetrieveUserStatsQuery, RetrieveUserinfoQuery,
-    SigninUserPayload, SigninUserResponse, UserStatsResponse,
+    CreateUserPayload, MessageResponse, ResendVerificationPayload, RetrieveUserResponse,
+    RetrieveUserStatsQuery, RetrieveUserinfoQuery, SigninUserPayload, SigninUserResponse,
+    SignupResponse, UserStatsResponse,
 };
 use crate::{
     entity::{problems, submissions, users},
     error::AppError,
     utils::{
         config::Config,
+        mailer::Mailer,
         security::{self, Claim},
     },
 };
@@ -23,8 +25,9 @@ impl UserService {
 
     pub async fn signup(
         db: &DatabaseConnection,
+        config: &Config,
         payload: CreateUserPayload,
-    ) -> Result<SigninUserResponse, AppError> {
+    ) -> Result<SignupResponse, AppError> {
         let existing = users::Entity::find()
             .filter(
                 Condition::any()
@@ -35,30 +38,117 @@ impl UserService {
             .await
             .map_err(|e| AppError::internal(e.to_string()))?;
 
-        if existing.is_some() {
-            return Err(AppError::conflict("Username or email already exists"));
-        }
-
         let hashed_password = security::hash_password(&payload.password)?;
+        let verification_token = uuid::Uuid::new_v4().simple().to_string();
 
-        let user = users::ActiveModel {
-            username: Set(payload.username),
-            email: Set(payload.email),
-            password: Set(hashed_password),
-            ..Default::default()
-        }
-        .insert(db)
+        let user = if let Some(existing_user) = existing {
+            if existing_user.verified {
+                return Err(AppError::conflict("Username or email already exists"));
+            }
+            let mut active_user: users::ActiveModel = existing_user.into();
+            active_user.username = Set(payload.username.clone());
+            active_user.email = Set(payload.email.clone());
+            active_user.password = Set(hashed_password);
+            active_user.verification_token = Set(Some(verification_token.clone()));
+            active_user
+                .update(db)
+                .await
+                .map_err(|e| AppError::internal(e.to_string()))?
+        } else {
+            users::ActiveModel {
+                username: Set(payload.username.clone()),
+                email: Set(payload.email.clone()),
+                password: Set(hashed_password),
+                verified: Set(false),
+                verification_token: Set(Some(verification_token.clone())),
+                ..Default::default()
+            }
+            .insert(db)
+            .await
+            .map_err(|e| AppError::internal(e.to_string()))?
+        };
+
+        if let Err(mail_err) = Mailer::send_verification_email(
+            &config.smtp,
+            &user.email,
+            &user.username,
+            &verification_token,
+        )
         .await
-        .map_err(|e| AppError::internal(e.to_string()))?;
+        {
+            return Err(mail_err);
+        }
 
-        Ok(SigninUserResponse::new(
+        Ok(SignupResponse::new(
             user.id,
             user.username,
             user.email,
-            "".to_string(),
+            "User registered successfully. Please check your email to verify your account.",
         ))
     }
 
+    pub async fn verify_email(
+        db: &DatabaseConnection,
+        token: &str,
+    ) -> Result<MessageResponse, AppError> {
+        if token.trim().is_empty() {
+            return Err(AppError::bad_request("Verification token cannot be empty"));
+        }
+
+        let user = users::Entity::find()
+            .filter(users::Column::VerificationToken.eq(token))
+            .one(db)
+            .await
+            .map_err(|e| AppError::internal(e.to_string()))?
+            .ok_or_else(|| AppError::bad_request("Invalid or expired verification token"))?;
+
+        let mut active_user: users::ActiveModel = user.into();
+        active_user.verified = Set(true);
+        active_user.verification_token = Set(None);
+
+        active_user
+            .update(db)
+            .await
+            .map_err(|e| AppError::internal(e.to_string()))?;
+
+        Ok(MessageResponse::new("Email verified successfully! You can now sign in."))
+    }
+
+    pub async fn resend_verification(
+        db: &DatabaseConnection,
+        config: &Config,
+        payload: ResendVerificationPayload,
+    ) -> Result<MessageResponse, AppError> {
+        let user = users::Entity::find()
+            .filter(users::Column::Email.eq(&payload.email))
+            .one(db)
+            .await
+            .map_err(|e| AppError::internal(e.to_string()))?
+            .ok_or_else(|| AppError::not_found("User with this email not found"))?;
+
+        if user.verified {
+            return Err(AppError::bad_request("Email is already verified"));
+        }
+
+        let new_token = uuid::Uuid::new_v4().simple().to_string();
+        let mut active_user: users::ActiveModel = user.into();
+        active_user.verification_token = Set(Some(new_token.clone()));
+
+        let updated_user = active_user
+            .update(db)
+            .await
+            .map_err(|e| AppError::internal(e.to_string()))?;
+
+        Mailer::send_verification_email(
+            &config.smtp,
+            &updated_user.email,
+            &updated_user.username,
+            &new_token,
+        )
+        .await?;
+
+        Ok(MessageResponse::new("Verification email resent successfully"))
+    }
 
     pub async fn signin(
         db: &DatabaseConnection,
@@ -82,6 +172,10 @@ impl UserService {
             return Err(AppError::auth("Invalid username or password"));
         }
 
+        if !user.verified {
+            return Err(AppError::auth("Please verify your email before signing in"));
+        }
+
         let access_token = security::generate_access_token(&user, config)
             .map_err(|e| AppError::internal(format!("Failed to generate access token: {}", e)))?;
         let refresh_token = security::generate_refresh_token(&user, config)
@@ -92,7 +186,6 @@ impl UserService {
 
         Ok((response, access_token, refresh_token))
     }
-
 
     pub async fn get_user(
         db: &DatabaseConnection,
@@ -110,9 +203,9 @@ impl UserService {
             user.email,
             user.rating,
             user.created_at,
+            user.verified,
         ))
     }
-
 
     pub async fn get_user_info(
         db: &DatabaseConnection,
@@ -142,6 +235,7 @@ impl UserService {
             user.email,
             user.rating,
             user.created_at,
+            user.verified,
         ))
     }
 
