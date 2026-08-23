@@ -4,6 +4,7 @@ services:
     image: postgres:16-alpine
     container_name: codeheck_db
     restart: always
+    cpuset: "0"
     ports:
       - "5432:5432"
     environment:
@@ -17,6 +18,7 @@ services:
     image: rabbitmq:alpine
     container_name: codeheck_mq
     restart: always
+    cpuset: "0"
     ports:
       - "5672:5672"
     environment:
