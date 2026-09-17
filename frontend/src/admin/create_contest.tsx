@@ -37,7 +37,7 @@ interface ProblemIdAndLabel {
 
 const CreateContest = () => {
     const navigator = useNavigate();
-    const { authfetch } = useAuth();
+    const { authfetch, user } = useAuth();
     const [form, setForm] = useState<CreateContestPayload>({
         title: "",
         slug: "",
@@ -54,19 +54,24 @@ const CreateContest = () => {
     const [selectedProblems, setSelectedProblems] = useState<Map<number, string>>(new Map());
     const [loadingProblems, setLoadingProblems] = useState(false);
     const [durationHours, setDurationHours] = useState<number>(2);
+    const [problemFilter, setProblemFilter] = useState<"mine" | "all">("mine");
+    const [searchQuery, setSearchQuery] = useState<string>("");
 
-
-    useEffect(() => {
-        if (step === "problems") {
-            fetchAvailableProblems();
-        }
-
-    }, [step]);
-
-    const fetchAvailableProblems = async () => {
+    const fetchAvailableProblems = async (
+        filter: "mine" | "all" = problemFilter,
+        search: string = searchQuery,
+    ) => {
         setLoadingProblems(true);
         try {
-            const res = await authfetch("/problems?limit=100", {
+            const params = new URLSearchParams({ limit: "100", order: "desc" });
+            if (filter === "mine" && user?.id) {
+                params.append("author_id", user.id.toString());
+            }
+            if (search.trim()) {
+                params.append("search", search.trim());
+            }
+
+            const res = await authfetch(`/problems?${params.toString()}`, {
                 method: "GET",
             });
 
@@ -84,6 +89,12 @@ const CreateContest = () => {
             setLoadingProblems(false);
         }
     };
+
+    useEffect(() => {
+        if (step === "problems") {
+            fetchAvailableProblems(problemFilter, searchQuery);
+        }
+    }, [step, problemFilter, user?.id]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -275,6 +286,55 @@ const CreateContest = () => {
                         </div>
                     )}
 
+                    {/* Filter and Search Controls */}
+                    <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                        <div className="flex gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl w-fit">
+                            <button
+                                type="button"
+                                onClick={() => setProblemFilter("mine")}
+                                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                    problemFilter === "mine"
+                                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                        : "text-zinc-400 hover:text-zinc-200"
+                                }`}
+                            >
+                                My Problems
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setProblemFilter("all")}
+                                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                    problemFilter === "all"
+                                        ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                        : "text-zinc-400 hover:text-zinc-200"
+                                }`}
+                            >
+                                All Problems
+                            </button>
+                        </div>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                fetchAvailableProblems(problemFilter, searchQuery);
+                            }}
+                            className="flex-1 max-w-sm flex items-center gap-2"
+                        >
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search by title..."
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:border-zinc-600 outline-none"
+                            />
+                            <button
+                                type="submit"
+                                className="px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-xl text-xs font-medium transition"
+                            >
+                                Search
+                            </button>
+                        </form>
+                    </div>
+
                     {loadingProblems ? (
                         <div className="text-center py-12 space-y-3">
                             <div className="w-7 h-7 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -283,14 +343,18 @@ const CreateContest = () => {
                     ) : availableProblems.length === 0 ? (
                         <div className="text-center py-12 bg-zinc-950 rounded-xl border border-dashed border-zinc-800">
                             <p className="text-zinc-400 font-medium text-xs mb-3">
-                                No problems available. Create some problems first.
+                                {problemFilter === "mine"
+                                    ? "No problems authored by you found. Create one or switch to All Problems."
+                                    : "No problems found matching your query."}
                             </p>
-                            <button
-                                onClick={() => navigator("/admin/create_problem")}
-                                className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition shadow-sm"
-                            >
-                                Create Problem
-                            </button>
+                            {problemFilter === "mine" && (
+                                <button
+                                    onClick={() => navigator("/admin/create_problem")}
+                                    className="px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-xs font-semibold transition shadow-sm"
+                                >
+                                    Create Problem
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <>

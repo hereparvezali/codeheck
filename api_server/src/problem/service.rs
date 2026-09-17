@@ -1,7 +1,7 @@
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
     ExprTrait, Order, QueryFilter, QueryOrder, QuerySelect, QueryTrait,
-    sea_query::{BinOper, Expr},
+    sea_query::{BinOper, Expr, Func},
 };
 
 use super::dto::{
@@ -117,12 +117,11 @@ impl ProblemService {
 
 
                 let now = chrono::Utc::now();
-                let active_contests: Vec<i64> = contests::Entity::find()
+                let accessible_contests: Vec<i64> = contests::Entity::find()
                     .filter(
                         Condition::all()
                             .add(contests::Column::Id.is_in(contest_ids))
-                            .add(contests::Column::StartTime.lte(now))
-                            .add(contests::Column::EndTime.gte(now)),
+                            .add(contests::Column::StartTime.lte(now)),
                     )
                     .select_only()
                     .column(contests::Column::Id)
@@ -131,11 +130,11 @@ impl ProblemService {
                     .await
                     .map_err(|e| AppError::internal(e.to_string()))?;
 
-                if !active_contests.is_empty() {
+                if !accessible_contests.is_empty() {
                     let is_registered = contest_registrations::Entity::find()
                         .filter(
                             Condition::all()
-                                .add(contest_registrations::Column::ContestId.is_in(active_contests))
+                                .add(contest_registrations::Column::ContestId.is_in(accessible_contests))
                                 .add(contest_registrations::Column::UserId.eq(uid)),
                         )
                         .one(db)
@@ -182,19 +181,44 @@ impl ProblemService {
         }
 
         if let Some(ref search_str) = query.search {
-            condition = condition.add(problems::Column::Title.contains(search_str));
+            let trimmed = search_str.trim();
+            if !trimmed.is_empty() {
+                let pattern = format!("%{}%", trimmed.to_lowercase());
+                condition = condition.add(
+                    Condition::any()
+                        .add(Expr::expr(Func::lower(Expr::col(problems::Column::Title))).like(&pattern))
+                        .add(Expr::expr(Func::lower(Expr::col(problems::Column::Slug))).like(&pattern)),
+                );
+            }
         }
 
+        let is_desc = query
+            .order
+            .as_deref()
+            .map(|s| s.eq_ignore_ascii_case("desc"))
+            .unwrap_or(false);
+
         if let Some(cursor) = query.cursor {
-            condition = condition.add(problems::Column::Id.gt(cursor));
+            if is_desc {
+                condition = condition.add(problems::Column::Id.lt(cursor));
+            } else {
+                condition = condition.add(problems::Column::Id.gt(cursor));
+            }
         }
 
         let active_user_id = query.user_id.or(current_user_id);
 
-        let mut select = problems::Entity::find()
-            .filter(condition)
-            .order_by(problems::Column::Id, Order::Asc)
-            .limit(limit);
+        let mut select = if is_desc {
+            problems::Entity::find()
+                .filter(condition)
+                .order_by(problems::Column::Id, Order::Desc)
+                .limit(limit)
+        } else {
+            problems::Entity::find()
+                .filter(condition)
+                .order_by(problems::Column::Id, Order::Asc)
+                .limit(limit)
+        };
 
         if let Some(offset) = query.offset {
             select = select.offset(offset);

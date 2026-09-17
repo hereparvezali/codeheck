@@ -48,7 +48,7 @@ interface ProblemIdAndLabel {
 const EditContest = () => {
     const { id } = useParams<{ id: string }>();
     const navigator = useNavigate();
-    const { authfetch } = useAuth();
+    const { authfetch, user } = useAuth();
 
     const [form, setForm] = useState<UpdateContestPayload>({
         title: "",
@@ -66,14 +66,14 @@ const EditContest = () => {
         "details",
     );
 
-
     const [contestProblems, setContestProblems] = useState<ContestProblem[]>(
         [],
     );
     const [availableProblems, setAvailableProblems] = useState<Problem[]>([]);
     const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
-
+    const [problemFilter, setProblemFilter] = useState<"mine" | "all">("mine");
+    const [searchQuery, setSearchQuery] = useState<string>("");
 
     useEffect(() => {
         if (!id) return;
@@ -100,7 +100,6 @@ const EditContest = () => {
                     is_public: data.is_public,
                 });
 
-
                 return authfetch(`/contest/problems?id=${data.id}`);
             })
             .then(async (res) => {
@@ -116,21 +115,23 @@ const EditContest = () => {
             .finally(() => {
                 setFetchLoading(false);
             });
-
     }, [id]);
 
-
-    useEffect(() => {
-        if (activeTab === "problems" && availableProblems.length === 0) {
-            fetchAvailableProblems();
-        }
-
-    }, [activeTab]);
-
-    const fetchAvailableProblems = async () => {
+    const fetchAvailableProblems = async (
+        filter: "mine" | "all" = problemFilter,
+        search: string = searchQuery,
+    ) => {
         setLoadingProblems(true);
         try {
-            const res = await authfetch("/problems?limit=100", {
+            const params = new URLSearchParams({ limit: "100", order: "desc" });
+            if (filter === "mine" && user?.id) {
+                params.append("author_id", user.id.toString());
+            }
+            if (search.trim()) {
+                params.append("search", search.trim());
+            }
+
+            const res = await authfetch(`/problems?${params.toString()}`, {
                 method: "GET",
             });
 
@@ -150,6 +151,12 @@ const EditContest = () => {
             setLoadingProblems(false);
         }
     };
+
+    useEffect(() => {
+        if (activeTab === "problems") {
+            fetchAvailableProblems(problemFilter, searchQuery);
+        }
+    }, [activeTab, problemFilter, user?.id]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -536,17 +543,69 @@ const EditContest = () => {
                         </div>
 
                         {}
-                        <div className="pt-4 border-t border-zinc-900">
-                            <h3 className="text-sm font-bold text-white mb-3">
-                                Add More Problems to Contest
-                            </h3>
+                        <div className="pt-4 border-t border-zinc-900 space-y-4">
+                            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                                <h3 className="text-sm font-bold text-white">
+                                    Add More Problems to Contest
+                                </h3>
+
+                                <div className="flex gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl w-fit">
+                                    <button
+                                        type="button"
+                                        onClick={() => setProblemFilter("mine")}
+                                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                            problemFilter === "mine"
+                                                ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                                : "text-zinc-400 hover:text-zinc-200"
+                                        }`}
+                                    >
+                                        My Problems
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setProblemFilter("all")}
+                                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                                            problemFilter === "all"
+                                                ? "bg-zinc-800 text-white shadow-sm border border-zinc-700"
+                                                : "text-zinc-400 hover:text-zinc-200"
+                                        }`}
+                                    >
+                                        All Problems
+                                    </button>
+                                </div>
+                            </div>
+
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    fetchAvailableProblems(problemFilter, searchQuery);
+                                }}
+                                className="flex items-center gap-2"
+                            >
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search problems by title..."
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:border-zinc-600 outline-none"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-xl text-xs font-medium transition"
+                                >
+                                    Search
+                                </button>
+                            </form>
+
                             {loadingProblems ? (
                                 <p className="text-center py-6 text-zinc-500 text-xs">
                                     Loading available problems...
                                 </p>
                             ) : availableProblems.length === 0 ? (
                                 <p className="text-center py-6 text-zinc-500 text-xs bg-zinc-950 rounded-xl border border-zinc-900">
-                                    No additional problems available. Create some problems first.
+                                    {problemFilter === "mine"
+                                        ? "No problems authored by you found. Switch to All Problems or create a new problem."
+                                        : "No problems found matching your query."}
                                 </p>
                             ) : (
                                 <>
@@ -556,7 +615,7 @@ const EditContest = () => {
                                                 (p) =>
                                                     !contestProblems.some(
                                                         (cp) =>
-                                                            cp.problem_id === p.id,
+                                                            (cp.problem_id || cp.id) === p.id,
                                                     ),
                                             )
                                             .map((problem) => (

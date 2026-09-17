@@ -51,6 +51,7 @@ pub struct RetrieveProblemsQueryWithCursor {
     pub user_id: Option<i64>,
     pub status: Option<String>,
     pub search: Option<String>,
+    pub order: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
