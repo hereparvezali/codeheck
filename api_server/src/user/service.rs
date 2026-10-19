@@ -37,7 +37,7 @@ impl UserService {
             .await
             .map_err(|e| AppError::internal(e.to_string()))?;
 
-        let hashed_password = security::hash_password(payload.password).await?;
+        let hashed_password = security::hash_password(&payload.password).await?;
         let verification_token = uuid::Uuid::new_v4().simple().to_string();
 
         let user = if let Some(existing_user) = existing {
@@ -169,7 +169,7 @@ impl UserService {
             .map_err(|e| AppError::internal(e.to_string()))?
             .ok_or_else(|| AppError::auth("Invalid username or password"))?;
 
-        let valid = security::verify_password(user.password.clone(), payload.password).await?;
+        let valid = security::verify_password(&payload.password, &user.password).await?;
 
         if !valid {
             return Err(AppError::auth("Invalid username or password"));

@@ -81,7 +81,8 @@ pub fn validate_token(token: &str, config: &Config) -> Result<Claim, AppError> {
     Ok(data.claims)
 }
 
-pub async fn hash_password(password: String) -> Result<String, AppError> {
+pub async fn hash_password(password: &str) -> Result<String, AppError> {
+    let password = password.to_string();
     spawn_blocking(move || {
         bcrypt::hash(password, bcrypt::DEFAULT_COST / 2)
             .map_err(|e| AppError::internal(format!("Failed to hash password: {}", e)))
@@ -90,7 +91,9 @@ pub async fn hash_password(password: String) -> Result<String, AppError> {
     .map_err(|e| AppError::internal(e.to_string()))?
 }
 
-pub async fn verify_password(hashed_password: String, password: String) -> Result<bool, AppError> {
+pub async fn verify_password(password: &str, hashed_password: &str) -> Result<bool, AppError> {
+    let password = password.to_string();
+    let hashed_password = hashed_password.to_string();
     spawn_blocking(move || {
         bcrypt::verify(password, &hashed_password)
             .map_err(|e| AppError::internal(format!("Failed to verify password: {}", e)))
@@ -105,18 +108,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_password_hash_and_verify() {
-        let password = "my_secure_password_123!".to_string();
-        let hash = hash_password(password.clone())
+        let password = "my_secure_password_123!";
+        let hash = hash_password(password)
             .await
             .expect("Hashing should succeed");
 
         assert!(
-            verify_password(hash.clone(), password)
+            verify_password(password, &hash)
                 .await
                 .expect("Verification should succeed")
         );
         assert!(
-            !verify_password(hash, "wrong_password".to_string())
+            !verify_password("wrong_password", &hash)
                 .await
                 .expect("Verification should succeed")
         );
