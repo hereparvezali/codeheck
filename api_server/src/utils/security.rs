@@ -2,6 +2,7 @@ use crate::{entity::users, error::AppError, utils::config::Config};
 use chrono::Utc;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
+use tokio::task::spawn_blocking;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claim {
@@ -80,26 +81,44 @@ pub fn validate_token(token: &str, config: &Config) -> Result<Claim, AppError> {
     Ok(data.claims)
 }
 
-pub fn hash_password(password: &str) -> Result<String, AppError> {
-    bcrypt::hash(password, bcrypt::DEFAULT_COST / 2)
-        .map_err(|e| AppError::internal(format!("Failed to hash password: {}", e)))
+pub async fn hash_password(password: String) -> Result<String, AppError> {
+    spawn_blocking(move || {
+        bcrypt::hash(password, bcrypt::DEFAULT_COST / 2)
+            .map_err(|e| AppError::internal(format!("Failed to hash password: {}", e)))
+    })
+    .await
+    .map_err(|e| AppError::internal(e.to_string()))?
 }
 
-pub fn verify_password(hashed_password: &str, password: &str) -> Result<bool, AppError> {
-    bcrypt::verify(password, hashed_password)
-        .map_err(|e| AppError::internal(format!("Failed to verify password: {}", e)))
+pub async fn verify_password(hashed_password: String, password: String) -> Result<bool, AppError> {
+    spawn_blocking(move || {
+        bcrypt::verify(password, &hashed_password)
+            .map_err(|e| AppError::internal(format!("Failed to verify password: {}", e)))
+    })
+    .await
+    .map_err(|e| AppError::internal(e.to_string()))?
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_password_hash_and_verify() {
-        let password = "my_secure_password_123!";
-        let hash = hash_password(password).expect("Hashing should succeed");
+    #[tokio::test]
+    async fn test_password_hash_and_verify() {
+        let password = "my_secure_password_123!".to_string();
+        let hash = hash_password(password.clone())
+            .await
+            .expect("Hashing should succeed");
 
-        assert!(verify_password(&hash, password).expect("Verification should succeed"));
-        assert!(!verify_password(&hash, "wrong_password").expect("Verification should succeed"));
+        assert!(
+            verify_password(hash.clone(), password)
+                .await
+                .expect("Verification should succeed")
+        );
+        assert!(
+            !verify_password(hash, "wrong_password".to_string())
+                .await
+                .expect("Verification should succeed")
+        );
     }
 }

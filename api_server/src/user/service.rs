@@ -22,7 +22,6 @@ use crate::{
 pub struct UserService;
 
 impl UserService {
-
     pub async fn signup(
         db: &DatabaseConnection,
         config: &Config,
@@ -38,7 +37,7 @@ impl UserService {
             .await
             .map_err(|e| AppError::internal(e.to_string()))?;
 
-        let hashed_password = security::hash_password(&payload.password)?;
+        let hashed_password = security::hash_password(payload.password).await?;
         let verification_token = uuid::Uuid::new_v4().simple().to_string();
 
         let user = if let Some(existing_user) = existing {
@@ -111,7 +110,9 @@ impl UserService {
             .await
             .map_err(|e| AppError::internal(e.to_string()))?;
 
-        Ok(MessageResponse::new("Email verified successfully! You can now sign in."))
+        Ok(MessageResponse::new(
+            "Email verified successfully! You can now sign in.",
+        ))
     }
 
     pub async fn resend_verification(
@@ -147,7 +148,9 @@ impl UserService {
         )
         .await?;
 
-        Ok(MessageResponse::new("Verification email resent successfully"))
+        Ok(MessageResponse::new(
+            "Verification email resent successfully",
+        ))
     }
 
     pub async fn signin(
@@ -166,7 +169,7 @@ impl UserService {
             .map_err(|e| AppError::internal(e.to_string()))?
             .ok_or_else(|| AppError::auth("Invalid username or password"))?;
 
-        let valid = security::verify_password(&user.password, &payload.password)?;
+        let valid = security::verify_password(user.password.clone(), payload.password).await?;
 
         if !valid {
             return Err(AppError::auth("Invalid username or password"));
@@ -238,7 +241,6 @@ impl UserService {
             user.verified,
         ))
     }
-
 
     pub async fn get_stats(
         db: &DatabaseConnection,
